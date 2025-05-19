@@ -85,20 +85,18 @@ export default {
           this.loginForm.redisKey = this.redisKey
           this.$axios.post('/api/user/login',this.loginForm).then(res =>{
             if(res.data.code === 200 || res.data.message === "ok"){
-              this.$message.success("登录成功")
               // 根据后端返回的数据判断用户角色
               const userData = res.data.data
-              if(userData.userRole === 0) {
-                // 普通用户
-                sessionStorage.setItem('userInfo', JSON.stringify(userData))
-                sessionStorage.setItem('token', userData.id)
-                sessionStorage.setItem('role', '0')
-                this.$router.push('/user/home')
-              } else {
+              // 检查用户权限，只允许管理员（permission=1）通过管理员登录入口登录
+              if(userData.permission === 1) {
+                this.$message.success("管理员登录成功")
                 // 管理员
                 sessionStorage.setItem('token', userData.id || res.data.data)
                 sessionStorage.setItem('role', '1')
                 this.$router.push('/charts/statistics')
+              } else {
+                // 普通用户尝试通过管理员入口登录
+                this.$message.error("您没有管理员权限，请使用用户登录入口")
               }
             }else {
               this.$message.error(res.data.message || '登录失败')
@@ -122,18 +120,24 @@ export default {
           this.userLoginForm.redisKey = this.redisKey
           this.$axios.post('/api/user/login',this.userLoginForm).then(res =>{
             if(res.data.code === 200 || res.data.message === "ok"){
-              this.$message.success("登录成功")
-              // 保存用户信息
+              // 根据后端返回的数据判断用户角色
               const userData = res.data.data
-              sessionStorage.setItem('userInfo', JSON.stringify(userData))
-              // 使用用户ID作为token
-              sessionStorage.setItem('token', userData.id)
-              sessionStorage.setItem('role', '0') // 设置为普通用户角色
-              console.log('登录成功，准备跳转...')
-              // 延迟一点执行跳转，确保localStorage更新完成
-              setTimeout(() => {
-                this.$router.push('/user/home')
-              }, 100)
+              // 检查用户权限，只允许普通用户（permission=0）通过用户登录入口登录
+              if(userData.permission === 0) {
+                this.$message.success("用户登录成功")
+                // 保存用户信息
+                sessionStorage.setItem('userInfo', JSON.stringify(userData))
+                // 使用用户ID作为token
+                sessionStorage.setItem('token', userData.id)
+                sessionStorage.setItem('role', '0') // 设置为普通用户角色
+                // 延迟一点执行跳转，确保sessionStorage更新完成
+                setTimeout(() => {
+                  this.$router.push('/user/home')
+                }, 100)
+              } else {
+                // 管理员尝试通过用户入口登录
+                this.$message.error("管理员请使用管理员登录入口")
+              }
             }else {
               this.$message.error(res.data.message || '登录失败')
             }
