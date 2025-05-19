@@ -62,15 +62,8 @@ const routes = [
           adminOnly: true
         }
       },
-      {
-        path: '/person/vip',
-        name: 'vip',
-        component: () => import('../views/person/vip.vue'),
-        meta: {
-          requireAuth: true,
-          adminOnly: true
-        }
-      },
+    // 会员管理功能已移除
+    
       /*
       {
       path: '/fly/airport',
@@ -100,23 +93,10 @@ const routes = [
           adminOnly: true
         }
       },
-      {
-      path: '/plane/planeType',
-      name: 'planeType',
-        component: () => import('../views/plane/planeType'),
-        meta: {
-          requireAuth: true,
-          adminOnly: true
-        }
-      },
-      {
-      path: '/baggage/baggage',
-      name: 'baggage',
-        component: () => import('../views/order/baggage.vue'),
-        meta: {
-          requireAuth: true
-        }
-      },
+      // 机型管理功能已移除
+      
+      // 行李托运功能已移除
+      
       {
       path: '/announcement/announcement',
       name: 'announcement',
@@ -158,15 +138,7 @@ const routes = [
           requireAuth: true
         }
       },
-      {
-        path: '/admin/seats',
-        name: '座位管理',
-        component: () => import('../views/admin/seats.vue'),
-        meta: {
-          requireAuth: true,
-          adminOnly: true
-        }
-      }
+      // 座位管理功能已移除
     ]
   }
 ]
@@ -178,7 +150,7 @@ const router = new VueRouter({
 })
 router.beforeEach((to, from, next) => {
   // 开发模式下，暂时取消登录验证
-  const devMode = false; // 开发阶段设为true，上线时改为false
+  const devMode = true; // 开发阶段设为true，上线时改为false
   
   if (devMode) {
     // 如果是开发模式，直接放行所有路由

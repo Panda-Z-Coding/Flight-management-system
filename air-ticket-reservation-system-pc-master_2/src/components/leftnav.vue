@@ -32,7 +32,6 @@
           </template>
           <el-menu-item index="/person/user">普通用户</el-menu-item>
           <el-menu-item index="/person/employee">员工管理</el-menu-item>
-          <el-menu-item index="/person/vip">VIP用户</el-menu-item>
         </el-submenu>
         
         <el-menu-item index="/order/order">
@@ -40,15 +39,7 @@
           <span slot="title">订单管理</span>
         </el-menu-item>
         
-        <el-menu-item index="/admin/seats">
-          <i class="el-icon-s-grid"></i>
-          <span slot="title">座位管理</span>
-        </el-menu-item>
-        
-        <el-menu-item index="/plane/planeType">
-          <i class="el-icon-s-cooperation"></i>
-          <span slot="title">机型管理</span>
-        </el-menu-item>
+        <!-- 座位管理和机型管理功能已移除 -->
         
         <el-menu-item index="/announcement/announcement">
           <i class="el-icon-bell"></i>

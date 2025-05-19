@@ -76,6 +76,9 @@ export default {
     userLogin(){
       this.userLoginShow = true
     },
+    adminLogin(){
+      this.userLoginShow = false
+    },
     login(formName){
       this.$refs[formName].validate(valid=>{
         if(valid){
@@ -83,9 +86,20 @@ export default {
           this.$axios.post('/api/user/login',this.loginForm).then(res =>{
             if(res.data.code === 200 || res.data.message === "ok"){
               this.$message.success("登录成功")
-              sessionStorage.setItem('token', res.data.data)
-              sessionStorage.setItem('role', '1') // 设置为管理员角色
-              this.$router.push('/charts/statistics')
+              // 根据后端返回的数据判断用户角色
+              const userData = res.data.data
+              if(userData.userRole === 0) {
+                // 普通用户
+                sessionStorage.setItem('userInfo', JSON.stringify(userData))
+                sessionStorage.setItem('token', userData.id)
+                sessionStorage.setItem('role', '0')
+                this.$router.push('/user/home')
+              } else {
+                // 管理员
+                sessionStorage.setItem('token', userData.id || res.data.data)
+                sessionStorage.setItem('role', '1')
+                this.$router.push('/charts/statistics')
+              }
             }else {
               this.$message.error(res.data.message || '登录失败')
             }
@@ -110,9 +124,10 @@ export default {
             if(res.data.code === 200 || res.data.message === "ok"){
               this.$message.success("登录成功")
               // 保存用户信息
-              sessionStorage.setItem('userInfo', JSON.stringify(res.data.data))
+              const userData = res.data.data
+              sessionStorage.setItem('userInfo', JSON.stringify(userData))
               // 使用用户ID作为token
-              sessionStorage.setItem('token', res.data.data.id)
+              sessionStorage.setItem('token', userData.id)
               sessionStorage.setItem('role', '0') // 设置为普通用户角色
               console.log('登录成功，准备跳转...')
               // 延迟一点执行跳转，确保localStorage更新完成
