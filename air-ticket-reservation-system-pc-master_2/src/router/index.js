@@ -150,7 +150,7 @@ const router = new VueRouter({
 })
 router.beforeEach((to, from, next) => {
   // 开发模式下，暂时取消登录验证
-  const devMode = true; // 开发阶段设为true，上线时改为false
+  const devMode = false; // 开发阶段设为true，上线时改为false
   
   if (devMode) {
     // 如果是开发模式，直接放行所有路由

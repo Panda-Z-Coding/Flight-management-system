@@ -16,7 +16,7 @@
       border
       style="width: 100%">
       <el-table-column
-        prop="id"
+        prop="orderNumber"
         label="订单号"
         width="180">
       </el-table-column>
@@ -26,21 +26,40 @@
         width="120">
       </el-table-column>
       <el-table-column
-        label="航班信息"
-        width="200">
-        <template slot-scope="scope">
-          {{ scope.row.departure }} - {{ scope.row.arrival }}
-        </template>
+        prop="passengerName"
+        label="乘客姓名"
+        width="120">
       </el-table-column>
       <el-table-column
-        prop="departureTime"
-        label="出发时间"
+        prop="passengerIdCard"
+        label="身份证号"
         width="180">
       </el-table-column>
       <el-table-column
-        prop="totalPrice"
-        label="总价(元)"
+        prop="seatNumber"
+        label="座位号"
+        width="120">
+      </el-table-column>
+      <el-table-column
+        prop="price"
+        label="票价(元)"
         width="100">
+        <template slot-scope="scope">
+          {{ scope.row.price.toFixed(2) }}
+        </template>
+      </el-table-column>
+      <el-table-column
+        prop="serviceFee"
+        label="手续费(元)"
+        width="100">
+        <template slot-scope="scope">
+          {{ scope.row.serviceFee.toFixed(2) }}
+        </template>
+      </el-table-column>
+      <el-table-column
+        prop="paymentMethod"
+        label="支付方式"
+        width="120">
       </el-table-column>
       <el-table-column
         label="状态"
@@ -55,6 +74,17 @@
         prop="createTime"
         label="创建时间"
         width="180">
+        <template slot-scope="scope">
+          {{ formatDateTime(scope.row.createTime) }}
+        </template>
+      </el-table-column>
+      <el-table-column
+        prop="updateTime"
+        label="修改时间"
+        width="180">
+        <template slot-scope="scope">
+          {{ formatDateTime(scope.row.updateTime) }}
+        </template>
       </el-table-column>
       <el-table-column
         label="操作"
@@ -84,39 +114,27 @@
       <div v-if="selectedOrder" class="order-detail">
         <div class="detail-item">
           <span class="label">订单号:</span>
-          <span>{{ selectedOrder.id }}</span>
+          <span>{{ selectedOrder.orderNumber }}</span>
         </div>
         <div class="detail-item">
-          <span class="label">航班号:</span>
-          <span>{{ selectedOrder.flightNumber }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="label">航线:</span>
-          <span>{{ selectedOrder.departure }} - {{ selectedOrder.arrival }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="label">出发时间:</span>
-          <span>{{ selectedOrder.departureTime }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="label">到达时间:</span>
-          <span>{{ selectedOrder.arrivalTime }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="label">座位类型:</span>
-          <span>{{ getSeatTypeText(selectedOrder.seatType) }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="label">座位号:</span>
-          <span>{{ selectedOrder.seatNumber || '暂未分配' }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="label">乘客:</span>
+          <span class="label">乘客姓名:</span>
           <span>{{ selectedOrder.passengerName }}</span>
         </div>
         <div class="detail-item">
-          <span class="label">总价:</span>
-          <span>{{ selectedOrder.totalPrice }} 元</span>
+          <span class="label">身份证号:</span>
+          <span>{{ selectedOrder.passengerIdCard }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">座位号:</span>
+          <span>{{ selectedOrder.seatNumber }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">票价:</span>
+          <span>{{ selectedOrder.price.toFixed(2) }} 元</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">手续费:</span>
+          <span>{{ selectedOrder.serviceFee.toFixed(2) }} 元</span>
         </div>
         <div class="detail-item">
           <span class="label">支付方式:</span>
@@ -125,10 +143,6 @@
         <div class="detail-item">
           <span class="label">订单状态:</span>
           <span>{{ getStatusText(selectedOrder.status) }}</span>
-        </div>
-        <div class="detail-item" v-if="selectedOrder.status === 2">
-          <span class="label">手续费:</span>
-          <span>{{ selectedOrder.fee }} 元</span>
         </div>
         <div class="detail-item">
           <span class="label">创建时间:</span>
@@ -145,17 +159,17 @@
     <el-dialog title="订单支付" :visible.sync="payDialogVisible" width="500px">
       <div v-if="selectedOrder" class="pay-dialog">
         <div class="pay-info">
-          <p>订单号: {{ selectedOrder.id }}</p>
+          <p>订单号: {{ selectedOrder.orderNumber }}</p>
           <p>航班: {{ selectedOrder.flightNumber }}</p>
-          <p>航线: {{ selectedOrder.departure }} - {{ selectedOrder.arrival }}</p>
-          <p>出发时间: {{ selectedOrder.departureTime }}</p>
-          <p class="price">应付金额: <span>{{ selectedOrder.totalPrice }}</span> 元</p>
+          <p>票价: {{ selectedOrder.price.toFixed(2) }} 元</p>
+          <p>手续费: {{ selectedOrder.serviceFee.toFixed(2) }} 元</p>
+          <p class="price">应付金额: <span>{{ selectedOrder.price + selectedOrder.serviceFee }}</span> 元</p>
         </div>
         <el-divider></el-divider>
         <el-form :model="payForm" ref="payForm" :rules="payRules" label-width="100px">
           <el-form-item label="支付方式" prop="paymentMethod">
             <el-select v-model="payForm.paymentMethod" placeholder="请选择支付方式">
-              <el-option label="余额支付" value="BALANCE"></el-option>
+              <el-option label="信用卡" value="BALANCE"></el-option>
               <el-option label="支付宝" value="ALIPAY"></el-option>
               <el-option label="微信支付" value="WECHAT"></el-option>
             </el-select>
@@ -172,11 +186,10 @@
     <el-dialog title="申请退票" :visible.sync="refundDialogVisible" width="500px">
       <div v-if="selectedOrder" class="refund-dialog">
         <div class="refund-info">
-          <p>订单号: {{ selectedOrder.id }}</p>
+          <p>订单号: {{ selectedOrder.orderNumber }}</p>
           <p>航班: {{ selectedOrder.flightNumber }}</p>
-          <p>航线: {{ selectedOrder.departure }} - {{ selectedOrder.arrival }}</p>
-          <p>出发时间: {{ selectedOrder.departureTime }}</p>
-          <p>支付金额: {{ selectedOrder.totalPrice }} 元</p>
+          <p>票价: {{ selectedOrder.price.toFixed(2) }} 元</p>
+          <p>手续费: {{ selectedOrder.serviceFee.toFixed(2) }} 元</p>
           <p class="warning">注意: 退票可能会收取手续费，具体费用将根据距离起飞时间计算。</p>
         </div>
         <el-divider></el-divider>
@@ -230,15 +243,17 @@ export default {
     // 获取订单列表
     getOrders() {
       this.loading = true;
-      const params = {};
+      const params = {
+        username: this.$store.state.user.username
+      };
       if (this.filterStatus !== '') {
         params.status = this.filterStatus;
       }
       
-      this.$axios.get('/user/orders', { params })
+      this.$axios.get('/user/order', { params })
         .then(response => {
           this.loading = false;
-          if (response.data.code === 200) {
+          if (response.data.code === 1) {
             this.orderList = response.data.data;
           } else {
             this.$message.error(response.data.message || '获取订单列表失败');
@@ -306,7 +321,7 @@ export default {
       this.$refs.payForm.validate(valid => {
         if (valid) {
           this.submitting = true;
-          this.$axios.post(`/user/orders/${this.selectedOrder.id}/pay`, this.payForm)
+          this.$axios.post(`/user/orders/${this.selectedOrder.orderNumber}/pay`, this.payForm)
             .then(response => {
               this.submitting = false;
               if (response.data.code === 200) {
@@ -337,7 +352,7 @@ export default {
       this.$refs.refundForm.validate(valid => {
         if (valid) {
           this.submitting = true;
-          this.$axios.delete(`/user/orders/${this.selectedOrder.id}`, { data: this.refundForm })
+          this.$axios.delete(`/user/orders/${this.selectedOrder.orderNumber}`, { data: this.refundForm })
             .then(response => {
               this.submitting = false;
               if (response.data.code === 200) {
@@ -359,6 +374,13 @@ export default {
             });
         }
       });
+    },
+    
+    // 格式化日期时间
+    formatDateTime(dateTimeStr) {
+      if (!dateTimeStr) return '';
+      const date = new Date(dateTimeStr);
+      return date.toLocaleString();
     }
   },
   mounted() {

@@ -82,9 +82,8 @@ export default {
     login(formName){
       this.$refs[formName].validate(valid=>{
         if(valid){
-          this.loginForm.redisKey = this.redisKey
-          this.$axios.post('/api/user/login',this.loginForm).then(res =>{
-            if(res.data.code === 200 || res.data.message === "ok"){
+          this.$axios.post('admin/login',this.loginForm).then(res =>{
+            if(res.data.code === 1 || res.data.message === "ok"){
               // 根据后端返回的数据判断用户角色
               const userData = res.data.data
               // 检查用户权限，只允许管理员（permission=1）通过管理员登录入口登录
@@ -117,9 +116,8 @@ export default {
     loginUser(formName){
       this.$refs[formName].validate(valid=>{
         if(valid){
-          this.userLoginForm.redisKey = this.redisKey
-          this.$axios.post('/api/user/login',this.userLoginForm).then(res =>{
-            if(res.data.code === 200 || res.data.message === "ok"){
+          this.$axios.post('/user/login',this.userLoginForm).then(res =>{
+            if(res.data.code === 1 || res.data.message === "ok"){
               // 根据后端返回的数据判断用户角色
               const userData = res.data.data
               // 检查用户权限，只允许普通用户（permission=0）通过用户登录入口登录

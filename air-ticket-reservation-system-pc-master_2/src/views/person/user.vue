@@ -8,11 +8,6 @@
     <!--条件查询-->
     <el-form :inline="true" :model="formInline" class="user-search" v-show="!showDeleteButton">
       <el-form-item label="搜索：">
-        <el-select size="small" v-model="formInline.status" placeholder="请选择帐号状态">
-          <el-option label="全部" value=""></el-option>
-          <el-option label="正常" value="0"></el-option>
-          <el-option label="已封号" value="1"></el-option>
-        </el-select>
       </el-form-item>
       <el-form-item label="">
         <el-input size="small" v-model="formInline.username" placeholder="输入用户名"></el-input>
@@ -60,8 +55,6 @@
       <el-table-column label="操作" min-width="300">
         <template slot-scope="scope">
           <el-button size="mini" @click="handleEdit(scope.row)">编辑</el-button>
-          <el-button size="mini" type="danger" @click="deleteUser(scope.row.id)">删除</el-button>
-          <el-button size="mini" type="success" @click="resetpwd(scope.row.id)">重置密码</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -203,7 +196,7 @@ export default {
         const params = {
           id: ids.join(',')
         };
-        this.$axios.delete("/user/delete", {params}).then(res => {
+        this.$axios.delete("/admin/user", {params}).then(res => {
           if (res.data.code === 200) {
             this.pageNum = 1
             this.pageSize = 10
@@ -317,7 +310,7 @@ export default {
       this.queryAll()
     },
     queryAll() {
-      this.$axios.get('/user/queryAll', {
+      this.$axios.get('/admin/user/page', {
         params: {
           pageNum: this.pageNum,
           pageSize: this.pageSize,
@@ -325,9 +318,16 @@ export default {
           status: this.formInline.status
         }
       }).then(res => {
-        this.userData = res.data.data.records
-        this.pageNum = res.data.data.current
-        this.total = res.data.data.total
+        if (res.data.code === 1) {
+          this.userData = res.data.data.records
+          this.pageNum = res.data.data.current
+          this.total = res.data.data.total
+        } else {
+          this.$message.error(res.data.message || '获取用户列表失败')
+        }
+      }).catch(error => {
+        console.error('获取用户列表失败:', error)
+        this.$message.error('获取用户列表失败，请稍后重试')
       })
     }
   },

@@ -1,153 +1,65 @@
 <template>
-  <div class="order">
-    <el-breadcrumb separator-class="el-icon-arrow-right">
-      <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item>订单管理</el-breadcrumb-item>
-    </el-breadcrumb>
-
-    <el-form :inline="true" :model="formInline" class="user-search">
-      <el-form-item label="搜索：">
-        <el-form-item  prop="departureAirportId">
-          <el-select size="small" @change='queryByStartAirport($event)' v-model="formInline.departureAirportId" filterable clearable placeholder="请选择起始机场">
-            <el-option
-              v-for="item in city"
-              :key="item.id"
-              :label="item.airportName"
-              :value="item.id">
-            </el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item prop="destinationAirport">
-          <el-select size="small" v-model="formInline.destinationAirportId"  :disabled = disabled filterable clearable placeholder="请选择目的机场">
-            <el-option
-              v-for="item in startRoute"
-              :key="item.id"
-              :label="item.airportName"
-              :value="item.id">
-            </el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item  prop="orderTime">
-          <el-date-picker
-            v-model="formInline.orderTime"
-            type="date"
-            value-format="yyyy-MM-dd"
-            placeholder="选择订单日期">
-          </el-date-picker>
+  <div class="order-container">
+    <!-- 搜索区域 -->
+    <div class="search-box">
+      <el-form :inline="true" :model="queryParams" class="demo-form-inline">
+        <el-form-item>
+          <el-input v-model="queryParams.orderNumber" placeholder="订单编号" clearable></el-input>
         </el-form-item>
         <el-form-item>
-          <el-button size="small" type="primary" icon="el-icon-search" @click="search()">搜索</el-button>
-        </el-form-item>
-        <el-form-item>
-          <el-button size="small" type="primary" icon="el-icon-circle-plus" @click="exportData()">导出数据</el-button>
-        </el-form-item>
-      </el-form-item>
-    </el-form>
-    <!--列表-->
-    <el-table size="small" :data="orderData" highlight-current-row v-loading="loading" border element-loading-text="拼命加载中" style="width: 100%;">
-      <el-table-column align="center"  prop="departureAirport" label="起始机场" width="150">
-      </el-table-column>
-      <el-table-column align="center"  prop="destinationAirport" label="目的机场" width="150">
-      </el-table-column>
-      <el-table-column align="center"  prop="aircraftCode" label="飞机编号" width="150">
-      </el-table-column>
-      <el-table-column align="center" sortable prop="bookPersonName" label="订票人" width="150">
-      </el-table-column>
-      <el-table-column align="center" sortable prop="passengerName" label="乘机人" width="150">
-      </el-table-column>
-      <el-table-column
-        label="舱位种类" align="center" sortable prop="seatType">
-        <template slot-scope="scope">
-          <span v-if="scope.row.seatType === '1'">头等舱</span>
-          <span v-else>经济舱</span>
-        </template>
-      </el-table-column>
-      <el-table-column align="center" sortable prop="amount" label="实付金额" width="150">
-      </el-table-column>
-      <el-table-column align="center" sortable prop="orderTime" label="订单时间" width="150">
-      </el-table-column>
-      <el-table-column
-        label="是否升舱" align="center" sortable prop="isUpgrade">
-        <template slot-scope="scope">
-          <span v-if="scope.row.isUpgrade === '1'">升舱</span>
-          <span v-else>未升舱</span>
-        </template>
-      </el-table-column>
-      <el-table-column
-        label="订单状态" align="center" sortable prop="isCancelled">
-        <template slot-scope="scope">
-          <span v-if="scope.row.isCancelled === '1'">取消</span>
-          <span v-else>正常</span>
-        </template>
-      </el-table-column>
-      <el-table-column
-        label="是否托运" align="center" sortable prop="isCheckedBaggage">
-        <template slot-scope="scope">
-          <span v-if="scope.row.isCheckedBaggage === '1'">拖运</span>
-          <span v-else>不托运</span>
-        </template>
-      </el-table-column>
-
-      <el-table-column label="操作" min-width="150">
-        <template slot-scope="scope">
-          <el-button size="mini" v-show="userKind !== '-2'" @click="handleEdit(scope.row)">编辑</el-button>
-          <el-button size="mini" v-show="userKind !== '-2'" type="danger" @click="deleteOrder(scope.row.orderId)">删除</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-    <!-- 编辑界面 -->
-    <el-dialog :title="title" :visible.sync="editFormVisible" width="50%" @click='closeDialog("edit")'>
-      <el-form label-width="140px" ref="editOrderForm" :model="editOrderForm" :rules="rules">
-        <el-form-item label="订单时间" prop="orderTime">
-          <el-date-picker
-            v-model="editOrderForm.orderTime"
-            type="datetime"
-            value-format="yyyy-MM-dd HH:mm:ss"
-            placeholder="选择日期">
-          </el-date-picker>
-        </el-form-item>
-        <el-form-item label="实付金额" prop="amount">
-          <el-input type="number" size="small" v-model="editOrderForm.amount" auto-complete="off" placeholder="请输入实付金额"></el-input>
-        </el-form-item>
-        <el-form-item label="是否托运" prop="isCheckedBaggage">
-          <el-select size="small" v-model="editOrderForm.isCheckedBaggage" placeholder="请选择">
-            <el-option label="托运" :value="'1'"></el-option>
-            <el-option label="未托运" :value="'0'"></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="是否升舱" prop="isUpgrade">
-          <el-select size="small" v-model="editOrderForm.isUpgrade" placeholder="请选择">
-            <el-option label="升舱" :value="'1'"></el-option>
-            <el-option label="未升舱" :value="'0'"></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="是否退票" prop="isCancelled">
-          <el-select size="small" v-model="editOrderForm.isCancelled" placeholder="请选择">
-            <el-option label="未退票" :value="'0'"></el-option>
-            <el-option label="退票" :value="'1'"></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="是否未升舱机票" prop="isUpgradeOrder">
-          <el-select size="small" v-model="editOrderForm.isUpgradeOrder" placeholder="请选择">
-            <el-option label="是" :value="'1'"></el-option>
-            <el-option label="不是" :value="'0'"></el-option>
-          </el-select>
+          <el-button type="primary" @click="handleQuery">查询</el-button>
+          <el-button @click="resetQuery">重置</el-button>
         </el-form-item>
       </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button size="small" @click='closeDialog("edit")'>取消</el-button>
-        <el-button size="small" type="primary" :loading="loading" class="title" @click="submitForm('editOrderForm')">保存</el-button>
-      </div>
-    </el-dialog>
+    </div>
 
-    <!--    分页条-->
-    <div class="pagination">
+    <!-- 表格区域 -->
+    <el-table :data="orderList" border style="width: 100%" v-loading="loading">
+      <el-table-column align = "center" prop="orderNumber" label="订单编号" width="180"></el-table-column>
+      <el-table-column align = "center"prop="username" label="用户名" width="120"></el-table-column>
+      <el-table-column align = "center" prop="flightNumber" label="航班号" width="120"></el-table-column>
+      <el-table-column align = "center" prop="passengerName" label="乘客姓名" width="120"></el-table-column>
+      <el-table-column align = "center" prop="passengerIdCard" label="身份证号" width="180"></el-table-column>
+      <el-table-column align = "center" prop="seatNumber" label="座位号" width="120"></el-table-column>
+      <el-table-column align = "center" prop="price" label="票价" width="120">
+        <template slot-scope="scope">
+          ¥{{ scope.row.price.toFixed(2) }}
+        </template>
+      </el-table-column>
+      <el-table-column align = "center" prop="serviceFee" label="服务费" width="120">
+        <template slot-scope="scope">
+          ¥{{ scope.row.serviceFee.toFixed(2) }}
+        </template>
+      </el-table-column>
+      <el-table-column align = "center" prop="paymentMethod" label="支付方式" width="120"></el-table-column>
+      <el-table-column align = "center" prop="status" label="订单状态" width="120">
+        <template slot-scope="scope">
+          <el-tag :type="getStatusType(scope.row.status)">
+            {{ getStatusText(scope.row.status) }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column align = "center" prop="createTime" label="创建时间" width="180">
+        <template slot-scope="scope">
+          {{ formatDateTime(scope.row.createTime) }}
+        </template>
+      </el-table-column>
+      <el-table-column align = "center" prop="updateTime" label="修改时间" width="180">
+        <template slot-scope="scope">
+          {{ formatDateTime(scope.row.updateTime) }}
+        </template>
+      </el-table-column>
+      
+    </el-table>
+
+    <!-- 分页区域 -->
+    <div class="pagination-container">
       <el-pagination
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
-        :current-page="pageNum"
-        :page-sizes="[10, 15, 20, 25]"
-        :page-size="pageSize"
+        :current-page="queryParams.page"
+        :page-sizes="[10, 20, 30, 50]"
+        :page-size="queryParams.pageSize"
         layout="total, sizes, prev, pager, next, jumper"
         :total="total">
       </el-pagination>
@@ -156,244 +68,205 @@
 </template>
 
 <script>
-import FileSaver from 'file-saver';
 export default {
-  name: "order",
-  data(){
-    /* 定义初始化变量 */
-    return{
-      userKind:'',
-      editAddFlightForm:{
-        departureAirportId : '',
-        aircraftId: '',
-        departureTime:'',
-        arrivalTime:'',
-        economyClassNum:'',
-        firstClassNum:'',
-        firstClassPrice:'',
-        economyClassPrice:'',
-        destinationAirportId:''
+  name: 'Order',
+  data() {
+    return {
+      // 查询参数
+      queryParams: {
+        page: 1,
+        pageSize: 10,
+        orderNumber: ''
       },
-      disabled : true,
-      title: "修改订单",
-      loading: false, //显示加载
-      editFormVisible: false,
-      addFormVisible : false,
-      // 列表信息
-      orderData:[],
-      pageNum: 1,
-      pageSize: 10,
+      // 订单列表
+      orderList: [],
+      // 总条数
       total: 0,
-      editOrderForm:{
-        orderTime:'',
-        amount:'',
-        isCheckedBaggage:'',
-        isUpgrade:'',
-        isCancelled:'',
-        isUpgradeOrder:''
-      },
-
-
-      rules: {
-        orderTime: [
-          {required: true, message: '该项不能为空', trigger: 'blur'}
-        ],
-        amount: [
-          {required: true, message: '该项不能为空', trigger: 'blur'}
-        ],
-        isCheckedBaggage: [
-          {required: true, message: '该项不能为空', trigger: 'blur'}
-        ],
-        isUpgrade: [
-          {required: true, message: '该项不能为空', trigger: 'blur'}
-        ],
-        isCancelled: [
-          {required: true, message: '该项不能为空', trigger: 'blur'}
-        ],
-        isUpgradeOrder: [
-          {required: true, message: '该项不能为空', trigger: 'blur'}
-        ]
-      },
-      city:[],
-      plane:[],
-      startRoute:[],
-      // 条件查找
-      formInline: {
-        departureAirportId:'',
-        destinationAirportId:'',
-        orderTime:''
-      },
+      // 加载状态
+      loading: false
     }
   },
-  /* 定义事件函数 */
-  methods:{
-    getUserKind(){
-      const userDataJSON = sessionStorage.getItem("user");
-      const userData = JSON.parse(userDataJSON);
-      this.userKind = userData.vipStatus
-      console.log(this.userKind);
-    },
-    exportData() {
-      // 模拟要导出的数据
-      const data = this.orderData;
-      // 将数据转换为CSV格式
-      const csvData = this.convertToCSV(data);
-      // 创建Blob对象
-      const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8' });
-      // 使用FileSaver.js保存文件
-      FileSaver.saveAs(blob, 'data.csv');
-    },
-    convertToCSV(data) {
-      // 将数据转换为CSV格式的字符串
-      const csvRows = [];
-      const headers = Object.keys(data[0]);
-      csvRows.push(headers.join(','));
-
-      for (const row of data) {
-        const values = headers.map(header => {
-          const escaped = ('' + row[header]).replace(/"/g, '\\"');
-          return `"${escaped}"`;
-        });
-        csvRows.push(values.join(','));
-      }
-
-      return csvRows.join('\n');
-    },
-    closeDialog() {
-      this.editFormVisible = false
-      this.addFormVisible = false
-    },
-    queryByStartAirport(id){
-      if (id) {
-        this.startRoute = this.city.filter(airport => airport.id !== id);
-        this.disabled = false;
-      } else {
-        this.startRoute = [];
-        this.disabled = true;
-      }
-    },
-    // 打开编辑窗口
-    handleEdit(order) {
-      this.editFormVisible = true
-      this.editOrderForm = {...order}
-
-      this.queryAllCity()
-      this.queryPlaneMsg()
-      this.disabled = true
-    },
-    submitForm(formName) {
-      this.$axios.put("/order/updateOrder", this.editOrderForm).then(res => {
-        if (res.data.code === 200) {
-          this.editFormVisible = false
-          this.queryAll()
-          this.queryAllCity()
-          this.$message.success("修改成功")
-        } else {
-          this.$message.error(res.data.data)
+  created() {
+    this.getList()
+  },
+  methods: {
+    // 获取订单列表
+    async getList() {
+      this.loading = true
+      try {
+        // 构建查询参数
+        const params = {
+          page: this.queryParams.page,
+          pageSize: this.queryParams.pageSize
         }
-      })
-    },
-    // 删除
-    deleteOrder(id){
-      this.$confirm('确定要删除吗?', '信息', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        this.$axios.post(`/order/delete/${id}`).then(res =>{
-          if(res.data.code === 200){
-            this.pageNum = 1
-            this.queryAll()
-            this.queryAllCity()
-            this.$message.success("删除成功")
-          } else {
-            this.$message.error(res.data.data)
+        
+        // 只有当orderNumber有值且不为空字符串时才添加到查询参数中
+        if (this.queryParams.orderNumber && this.queryParams.orderNumber.trim()) {
+          params.orderNumber = this.queryParams.orderNumber.trim()
+          // 当按订单号查询时，设置pageSize为1，确保只返回一条记录
+          params.pageSize = 1
+        }
+
+        const response = await this.$axios.get('/admin/order/page', {
+          params,
+          headers: {
+            'Authorization': sessionStorage.getItem('token') ? `Bearer ${sessionStorage.getItem('token')}` : '',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
           }
         })
-      })
-        .catch(() => {
-          this.$message({
-            type: 'info',
-            message: '已取消删除！'
-          })
-        })
-    },
-    queryPlaneMsg(){
-      // 不再调用已删除的飞机信息API，使用静态数据
-      const staticPlaneData = [
-      { id: 1, aircraftCode: 'B737', aircraftType: '波音737' },
-        { id: 2, aircraftCode: 'B777', aircraftType: '波音737' },
-        { id: 3, aircraftCode: 'A320', aircraftType: '空客A320' },
-        { id: 4, aircraftCode: 'A330', aircraftType: '空客A330' }
-      ];
-      
-      this.plane = staticPlaneData;
-    },
-    queryAllCity(){
-      const staticAirportData = [
-      { id: 1, airportName: '北京首都国际机场', city: '北京' },
-        { id: 2, airportName: '上海浦东国际机场', city: '上海' },
-        { id: 3, airportName: '广州白云国际机场', city: '广州' },
-        { id: 4, airportName: '深圳宝安国际机场', city: '深圳' },
-        { id: 5, airportName: '成都双流国际机场', city: '成都' },
-        { id: 6, airportName: '厦门高崎国际机场', city: '厦门' },
-        { id: 7, airportName: '重庆江北国际机场', city: '重庆' }
-      ];
-      
-      this.city = staticAirportData;
-      this.startRoute = this.city;
-    },
-    search(){
-      this.pageNum = 1
-      this.queryAll()
-      this.queryAllCity()
-      this.disabled = true
-    },
-    handleSizeChange(val) {
-      this.pageSize = val
-      this.queryAll();
-      this.queryAllCity()
-    },
-    handleCurrentChange(val) {
-      this.pageNum = val
-      this.queryAll()
-      this.queryAllCity()
-    },
-    queryAll() {
-      this.$axios.get('/order/queryAll', {
-        params: {
-          pageNum: this.pageNum,
-          pageSize: this.pageSize,
-          departureAirportId: this.formInline.departureAirportId,
-          destinationAirportId: this.formInline.destinationAirportId,
-          orderTime: this.formInline.orderTime
 
-        }
-      }).then(res => {
-        if(res.data.code === 200){
-          this.orderData = res.data.data.records
-          this.pageNum = res.data.data.current
-          this.total = res.data.data.total
-          console.log(this.orderData);
+        if (response.data.code === 1) {
+          this.orderList = response.data.data.records
+          this.total = response.data.data.total
+          
+          // 如果是按订单号查询
+          if (params.orderNumber) {
+            if (this.orderList.length === 0) {
+              this.$message.warning('未找到该订单号对应的订单')
+            } else {
+              this.$message.success('查询成功')
+            }
+          } else {
+            // 普通分页查询
+            if (this.orderList.length === 0) {
+              this.$message.info('暂无订单数据')
+            }
+          }
         } else {
-          this.$message.warning(res.data.data)
+          this.$message.error(response.data.message || '获取订单列表失败')
         }
+      } catch (error) {
+        console.error('获取订单列表失败:', error)
+        this.$message.error('获取订单列表失败，请稍后重试')
+      } finally {
+        this.loading = false
+      }
+    },
 
-      })
+    // 查询按钮点击事件
+    handleQuery() {
+      // 重置页码到第一页
+      this.queryParams.page = 1
+      // 去除订单编号的首尾空格
+      const orderNumber = this.queryParams.orderNumber.trim()
+      
+      // 如果订单编号为空，提示用户
+      if (!orderNumber) {
+        this.$message.warning('请输入订单编号')
+        return
+      }
+      
+      // 更新查询参数并执行查询
+      this.queryParams.orderNumber = orderNumber
+      this.getList()
+    },
+
+    // 重置按钮点击事件
+    resetQuery() {
+      // 重置查询参数
+      this.queryParams = {
+        page: 1,
+        pageSize: 10,
+        orderNumber: ''
+      }
+      // 重新获取列表
+      this.getList()
+      // 提示用户
+      this.$message.success('已重置查询条件')
+    },
+
+    // 每页条数改变
+    handleSizeChange(val) {
+      // 只有在非订单号查询时才允许修改每页条数
+      if (!this.queryParams.orderNumber) {
+        this.queryParams.pageSize = val
+        this.queryParams.page = 1
+        this.getList()
+      }
+    },
+
+    // 当前页改变
+    handleCurrentChange(val) {
+      // 只有在非订单号查询时才允许切换页码
+      if (!this.queryParams.orderNumber) {
+        this.queryParams.page = val
+        this.getList()
+      }
+    },
+
+    // 查看订单详情
+    handleDetail(row) {
+      // TODO: 实现查看订单详情功能
+      console.log('查看订单详情:', row)
+    },
+
+    // 取消订单
+    async handleDelete(row) {
+      try {
+        await this.$confirm('确认取消该订单吗？', '提示', {
+          type: 'warning'
+        })
+        // TODO: 调用取消订单接口
+        this.$message.success('订单已取消')
+        this.getList()
+      } catch (error) {
+        console.error('取消订单失败:', error)
+      }
+    },
+
+    // 格式化日期时间
+    formatDateTime(dateTimeStr) {
+      if (!dateTimeStr) return ''
+      const date = new Date(dateTimeStr)
+      return date.toLocaleString()
+    },
+
+    // 获取订单状态文本
+    getStatusText(status) {
+      const statusMap = {
+        0: '待支付',
+        1: '已支付',
+        2: '已取消'
+      }
+      return statusMap[status] || '未知状态'
+    },
+
+    // 获取订单状态标签类型
+    getStatusType(status) {
+      const typeMap = {
+        0: 'warning',
+        1: 'success',
+        2: 'info'
+      }
+      return typeMap[status] || ''
     }
-  },
-  /* vue的生命周期函数
-     当页面加载完毕就会执行created里面的函数
-  */
-  created() {
-    this.queryAll()
-    this.queryAllCity()
-    this.getUserKind()
   }
 }
 </script>
 
-<!-- scoped此属性可以防止当前页面的样式不会影响其他页面样式 -->
 <style scoped>
+.order-container {
+  padding: 20px;
+}
 
+.search-box {
+  margin-bottom: 20px;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 4px;
+}
+
+.pagination-container {
+  margin-top: 20px;
+  text-align: right;
+}
+
+.el-table {
+  margin-top: 20px;
+}
+
+.el-tag {
+  margin-right: 5px;
+}
 </style>
