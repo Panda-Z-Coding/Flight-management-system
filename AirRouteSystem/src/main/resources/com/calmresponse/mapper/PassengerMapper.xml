@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.calmresponse.mapper.PassengerMapper">
+    <insert id="insert">
+        insert into passenger
+        (name, id_card, status, phone_number,create_time, update_time, is_delete,username)
+        values (#{name},#{idCard},#{status},#{phoneNumber},#{createTime},#{updateTime},#{isDelete},#{username})
+    </insert>
+    <update id="update">
+        UPDATE passenger
+        <set>
+            <if test="name != null">
+                name = #{name},
+            </if>
+            <if test="idCard != null">
+                id_card = #{idCard},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="phoneNumber!= null">
+                phone_number = #{phoneNumber},
+            </if>
+            <if test="isDelete != null">
+                is_delete = #{isDelete}
+            </if>
+        </set>
+        <where>
+            id = #{id}
+        </where>
+    </update>
+    <select id="pageQuery" resultType="com.calmresponse.entity.Passenger">
+        SELECT * FROM passenger
+        <where>
+            <if test="username != null and username != ''">
+                AND username = #{username}
+            </if>
+        </where>
+    </select>
+</mapper>

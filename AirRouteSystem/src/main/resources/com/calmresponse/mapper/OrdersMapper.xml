@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.calmresponse.mapper.OrdersMapper">
+
+    <insert id="insert">
+        insert into orders
+        (username, create_time, update_time, price,flight_number,
+         payment_method, status, service_fee,seat_number, passenger_name,
+         passenger_id_card, is_delete,order_number)
+        values (#{username},#{createTime},#{updateTime},#{price},
+                #{flightNumber},#{paymentMethod},#{status},#{serviceFee},
+                #{seatNumber},#{passengerName},#{passengerIdCard},#{isDelete},#{orderNumber})
+    </insert>
+    <update id="update">
+        UPDATE orders
+        <set>
+            <if test="username != null">
+                username = #{username},
+            </if>
+            <if test="price != null">
+                price = #{price},
+            </if>
+            <if test="flightNumber != null">
+                flight_number = #{flightNumber},
+            </if>
+            <if test="paymentMethod != null">
+                payment_method = #{paymentMethod},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="serviceFee != null">
+                service_fee = #{serviceFee},
+            </if>
+            <if test="seatNumber != null">
+                seat_number = #{seatNumber},
+            </if>
+            <if test="passengerName != null">
+                passenger_name = #{passengerName},
+            </if>
+            <if test="passengerIdCard != null">
+                passenger_id_card = #{passengerIdCard},
+            </if>
+            <if test="isDelete != null">
+                is_delete = #{isDelete},
+            </if>
+        </set>
+        <where>
+            id = #{id}
+        </where>
+    </update>
+    <select id="page" resultType="com.calmresponse.entity.Orders">
+        select * from orders
+        <where>
+            <if test="orderNumber!= null">
+                order_Number = #{orderNumber}
+            </if>
+        </where>
+    </select>
+
+</mapper>
