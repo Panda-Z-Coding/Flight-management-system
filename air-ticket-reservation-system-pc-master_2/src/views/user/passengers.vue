@@ -34,11 +34,9 @@
         width="150">
       </el-table-column>
       <el-table-column
-        label="乘客类型"
-        width="100">
-        <template slot-scope="scope">
-          {{ scope.row.status === 0 ? '成人' : '学生' }}
-        </template>
+        prop="status"
+        label="状态"
+        width="150">
       </el-table-column>
       <el-table-column
         prop="createTime"
@@ -65,6 +63,19 @@
       </el-table-column>
     </el-table>
 
+    <!-- 分页区域 -->
+    <div class="pagination-container">
+      <el-pagination
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="currentPage"
+        :page-sizes="[10, 20, 30, 50]"
+        :page-size="currentPageSize"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total">
+      </el-pagination>
+    </div>
+
     <!-- 添加/编辑乘客对话框 -->
     <el-dialog :title="dialogTitle" :visible.sync="dialogVisible" width="500px">
       <el-form :model="passengerForm" :rules="passengerRules" ref="passengerForm" label-width="100px">
@@ -77,11 +88,8 @@
         <el-form-item label="电话号码" prop="phoneNumber">
           <el-input v-model="passengerForm.phoneNumber" placeholder="请输入电话号码"></el-input>
         </el-form-item>
-        <el-form-item label="乘客类型" prop="status">
-          <el-select v-model="passengerForm.status" placeholder="请选择乘客类型">
-            <el-option :value="0" label="成人"></el-option>
-            <el-option :value="1" label="学生"></el-option>
-          </el-select>
+        <el-form-item label="状态" prop="status">
+          <el-input v-model="passengerForm.status" placeholder="状态"></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -170,11 +178,11 @@ export default {
     // 获取乘客列表
     getPassengers() {
       this.loading = true;
-      this.$axios.get('/user/passenger')
+      this.$axios.post('/user/passenger/page')
         .then(response => {
           this.loading = false;
-          if (response.data.code === 200) {
-            this.passengerList = response.data.data;
+          if (response.data.code === 1) {
+            this.passengerList = response.data.data.list;
           } else {
             this.$message.error(response.data.message || '获取乘客列表失败');
           }

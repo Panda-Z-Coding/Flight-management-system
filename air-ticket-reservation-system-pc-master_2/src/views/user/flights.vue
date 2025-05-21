@@ -3,10 +3,10 @@
     <div class="search-container">
       <el-form :inline="true" :model="searchForm" class="search-form">
         <el-form-item label="出发城市">
-          <el-input v-model="searchForm.departure" placeholder="请输入出发城市"></el-input>
+          <el-input v-model="searchForm.departureCity" placeholder="请输入出发城市"></el-input>
         </el-form-item>
         <el-form-item label="到达城市">
-          <el-input v-model="searchForm.arrival" placeholder="请输入到达城市"></el-input>
+          <el-input v-model="searchForm.arrivalCity" placeholder="请输入到达城市"></el-input>
         </el-form-item>
         <el-form-item label="出发日期">
           <el-date-picker
@@ -35,12 +35,17 @@
         width="120">
       </el-table-column>
       <el-table-column
-        prop="departure"
+        prop="aircraftModel"
+        label="飞机型号"
+        width="120">
+      </el-table-column>
+      <el-table-column
+        prop="departureCity"
         label="出发城市"
         width="120">
       </el-table-column>
       <el-table-column
-        prop="arrival"
+        prop="arrivalCity"
         label="到达城市"
         width="120">
       </el-table-column>
@@ -60,7 +65,12 @@
         width="120">
       </el-table-column>
       <el-table-column
-        prop="seatsLeft"
+        prop="totalSeats"
+        label="总座位数"
+        width="120">
+      </el-table-column>
+      <el-table-column
+        prop="remainingSeats"
         label="剩余座位"
         width="120">
       </el-table-column>
@@ -68,6 +78,16 @@
         prop="airline"
         label="航空公司"
         width="150">
+      </el-table-column>
+      <el-table-column
+        prop="createTime"
+        label="创建时间"
+        width="180">
+      </el-table-column>
+      <el-table-column
+        prop="updateTime"
+        label="修改时间"
+        width="180">
       </el-table-column>
       <el-table-column
         label="操作"
@@ -80,6 +100,19 @@
         </template>
       </el-table-column>
     </el-table>
+
+    <!-- 分页区域 -->
+    <div class="pagination-container">
+      <el-pagination
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="searchForm.page"
+        :page-sizes="[10, 20, 30, 50]"
+        :page-size="searchForm.pageSize"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total">
+      </el-pagination>
+    </div>
 
     <!-- 预订对话框 -->
     <el-dialog title="预订航班" :visible.sync="bookingDialogVisible" width="500px">
@@ -135,9 +168,11 @@ export default {
   data() {
     return {
       searchForm: {
-        departure: '',
-        arrival: '',
-        date: new Date().toISOString().split('T')[0] // 默认今天
+        departureCity: '',
+        arrivalCity: '',
+        date: '',
+        page: 1,
+        pageSize: 10
       },
       dateOptions: {
         disabledDate(time) {
@@ -147,6 +182,8 @@ export default {
       },
       loading: false,
       flightList: [],
+      //总条数
+      total: 0,
       bookingDialogVisible: false,
       selectedFlight: {},
       bookingForm: {
@@ -169,54 +206,107 @@ export default {
     };
   },
   methods: {
-    searchFlights() {
-      if (!this.searchForm.departure || !this.searchForm.arrival || !this.searchForm.date) {
-        this.$message.warning('请填写完整的查询条件');
-        return;
+    async searchFlights() {
+      this.loading = true;
+      try{
+      //构建参数
+      const params = {
+        page: this.searchForm.page,
+        pageSize: this.searchForm.pageSize
+      };
+
+      if (this.searchForm.departureCity && this.searchForm.departureCity.trim()) {
+        params.departureCity = this.searchForm.departureCity.trim();
+
       }
-      
-      // 验证选择的日期不早于今天
+
+      if (this.searchForm.arrivalCity && this.searchForm.arrivalCity.trim()) {
+        params.arrivalCity = this.searchForm.arrivalCity.trim();
+      }
+
+      if (this.searchForm.date) {
+        params.date = this.searchForm.date;
+      }
+    
+      const response = await this.$axios.post("/user/flights/page", params, {
+        headers: {
+          'Authorization': sessionStorage.getItem('token') ? `Bearer ${sessionStorage.getItem('token')}` : '',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      })
+
+      if(response.data.code === 1){
+        this.flightList = response.data.data.list
+        this.total = response.data.data.total
+
+        //根据查询条件给出相应的提示信息
+        const hasSearchCriteria = params.departureCity || params.arrivalCity || params.date;
+        if (hasSearchCriteria) {
+          const message = this.flightList.length ? '查询成功' : '未找到符合条件的航班';
+          this.$message[this.flightList.length ? 'success' : 'info'](message);
+        }
+      } else {
+        this.$message.error(response.data.message || '获取航班列表失败');
+      }
+    } catch (error) {
+      console.error('获取航班列表失败:', error);
+      this.$message.error('获取航班列表失败，请稍后重试');
+    } finally {
+      this.loading = false;
+    }
+    },
+
+    // 查询按钮点击事件
+    handleSearch() {
+      // 验证选择的日期是否早于今天
       const selectedDate = new Date(this.searchForm.date);
       const today = new Date();
-      today.setHours(0, 0, 0, 0); // 设置为今天的开始时间
+      //清除时间
+      today.setHours(0, 0, 0, 0);
+
+      if(selectedDate < today){
+        this.$message.error('不能查询今天之前的航班')
+        return;
+      }
+
+      // 重置页码到第一页
+      this.searchForm.page = 1
+
+      // 去除订单编号的首尾空格并执行搜索
+      this.searchForm.departureCity = this.searchForm.departureCity ? this.searchForm.departureCity.trim():'';
+      this.searchForm.arrivalCity = this.searchForm.arrivalCity ? this.searchForm.arrivalCity.trim():'';
       
-      if (selectedDate < today) {
-        this.$message.warning('不能查询今天之前的航班');
+      // 检查至少有一个搜索条件
+      if (!this.searchForm.departureCity && 
+          !this.searchForm.arrivalCity && 
+          !this.searchForm.date) {
+        this.$message.warning('请输入至少一个搜索条件');
         return;
       }
       
-      this.loading = true;
-      const params = {
-        departure: this.searchForm.departure,
-        arrival: this.searchForm.arrival,
-        date: this.searchForm.date
-      };
-      
-      this.$axios.get('/flights', { params })
-        .then(response => {
-          this.loading = false;
-          if (response.data.code === 200) {
-            // 过滤出当前时间之后的航班
-            const now = new Date();
-            this.flightList = response.data.data.filter(flight => {
-              // 假设departureTime格式为"yyyy-MM-dd HH:mm:ss"
-              const departureTime = new Date(flight.departureTime);
-              return departureTime > now;
-            });
-            
-            if (this.flightList.length === 0) {
-              this.$message.info('没有找到符合条件的航班');
-            }
-          } else {
-            this.$message.error(response.data.message || '查询失败');
-          }
-        })
-        .catch(error => {
-          this.loading = false;
-          this.$message.error('查询失败，请稍后重试');
-          console.error(error);
-        });
+      // 更新查询参数并执行查询
+      this.searchFlights()
     },
+
+    // 重置按钮点击事件
+    resetQuery() {
+      // 重置查询参数
+      this.searchForm = {
+        page: 1,
+        pageSize: 10,
+        departureCity: '',
+        arrivalCity:'',
+        departureTime:'',
+        arrivalTime:''
+      }
+       // 提示用户
+       this.$message.success('已重置查询条件')
+
+      // 重新获取列表
+      this.searchFlights()
+    },
+      
     bookFlight(flight) {
       this.selectedFlight = flight;
       this.bookingForm.flightId = flight.id;
