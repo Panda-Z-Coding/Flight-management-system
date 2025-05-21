@@ -176,22 +176,34 @@ export default {
     },
     
     // 获取乘客列表
-    getPassengers() {
+    async getPassengers() {
       this.loading = true;
-      this.$axios.post('/user/passenger/page')
-        .then(response => {
-          this.loading = false;
-          if (response.data.code === 1) {
-            this.passengerList = response.data.data.list;
-          } else {
-            this.$message.error(response.data.message || '获取乘客列表失败');
-          }
-        })
-        .catch(error => {
-          this.loading = false;
-          this.$message.error('获取乘客列表失败，请稍后重试');
-          console.error(error);
-        });
+
+      try{
+        const params = {
+        page: this.currentPage,
+        pageSize: this.currentPageSize,
+        departureCity: this.formInline.departureCity.trim() || '',
+        arrivalCity: this.formInline.arrivalCity.trim() || '',
+        flightNumber: this.formInline.flightNumber.trim() || '',
+        departureTime: this.formInline.departureTime.trim() || ''
+
+        };
+
+        const response = await this.$axios.post('/user/passenger/page', params);
+
+        if(response.data.code === 1){
+          this.passengerList = response.data.data.list;
+          this.total = response.data.data.total;
+        } else {
+          this.$message.warning(response.data.message);
+        }
+      } catch (error) { 
+        this.loading = false;
+        this.$message.error('获取乘客列表失败，请稍后重试');
+        console.error(error);
+
+      };
     },
     
     // 显示添加乘客对话框

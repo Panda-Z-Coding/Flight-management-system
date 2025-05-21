@@ -273,17 +273,11 @@ export default {
       // 重置页码到第一页
       this.searchForm.page = 1
 
-      // 去除订单编号的首尾空格并执行搜索
+      // 去除出发城市和到达城市的首尾空格并执行搜索
       this.searchForm.departureCity = this.searchForm.departureCity ? this.searchForm.departureCity.trim():'';
       this.searchForm.arrivalCity = this.searchForm.arrivalCity ? this.searchForm.arrivalCity.trim():'';
       
-      // 检查至少有一个搜索条件
-      if (!this.searchForm.departureCity && 
-          !this.searchForm.arrivalCity && 
-          !this.searchForm.date) {
-        this.$message.warning('请输入至少一个搜索条件');
-        return;
-      }
+      
       
       // 更新查询参数并执行查询
       this.searchFlights()

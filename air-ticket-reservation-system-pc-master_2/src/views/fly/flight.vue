@@ -675,7 +675,7 @@ export default {
     queryAll() {
       this.loading = true; // 添加加载状态
       
-      this.$axios.get('/admin/flights', {
+      this.$axios.post('/admin/flights', {
         params: {
           departureCity: this.formInline.departureCity,
           arrivalCity: this.formInline.arrivalCity,
@@ -685,8 +685,8 @@ export default {
       }).then(res => {
         this.loading = false; // 结束加载状态
         
-        if(res.data.code === 200){
-          this.flightData = res.data.data.records
+        if(res.data.code === 1){
+          this.flightData = res.data.data.list
           this.pageNum = res.data.data.current
           this.total = res.data.data.total
         } else {
