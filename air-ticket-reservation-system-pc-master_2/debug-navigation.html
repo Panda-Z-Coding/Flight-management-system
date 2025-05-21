@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>航空订票系统 - 调试导航</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2 {
+            color: #409EFF;
+        }
+        button {
+            background-color: #409EFF;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #66b1ff;
+        }
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .role-selector {
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h1>航空订票系统 - 开发调试导航</h1>
+    <p>此页面用于在前端开发阶段，绕过登录验证直接访问系统的不同页面。</p>
+
+    <div class="section">
+        <h2>1. 设置用户信息</h2>
+        <div class="role-selector">
+            <label>选择角色：</label>
+            <select id="roleSelect">
+                <option value="1">管理员</option>
+                <option value="2">普通用户</option>
+            </select>
+            <button onclick="setUserInfo()">设置用户信息</button>
+        </div>
+        <div id="status"></div>
+    </div>
+
+    <div class="section">
+        <h2>2. 管理员页面</h2>
+        <button onclick="navigateTo('/charts/statistics')">数据统计</button>
+        <button onclick="navigateTo('/fly/flight')">航班信息</button>
+        <button onclick="navigateTo('/fly/airport')">机场信息</button>
+        <button onclick="navigateTo('/fly/airway')">航线管理</button>
+        <button onclick="navigateTo('/person/user')">用户管理</button>
+        <button onclick="navigateTo('/person/employee')">员工管理</button>
+        <button onclick="navigateTo('/person/agent')">代理商管理</button>
+        <button onclick="navigateTo('/person/vip')">VIP用户</button>
+        <button onclick="navigateTo('/order/order')">订单管理</button>
+        <button onclick="navigateTo('/admin/seats')">座位管理</button>
+        <button onclick="navigateTo('/plane/planeType')">机型管理</button>
+        <button onclick="navigateTo('/plane/planeMsg')">飞机信息</button>
+        <button onclick="navigateTo('/announcement/announcement')">公告管理</button>
+    </div>
+
+    <div class="section">
+        <h2>3. 普通用户页面</h2>
+        <button onclick="navigateTo('/user/flights')">航班查询</button>
+        <button onclick="navigateTo('/user/orders')">我的订单</button>
+        <button onclick="navigateTo('/user/passengers')">乘客管理</button>
+    </div>
+
+    <script>
+        function setUserInfo() {
+            const role = document.getElementById('roleSelect').value;
+            // 设置一个假的token和角色
+            sessionStorage.setItem('token', 'fake-token-for-development');
+            sessionStorage.setItem('role', role);
+            
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<p style="color: green;">已设置用户信息：角色ID = ${role} (${role === '1' ? '管理员' : '普通用户'})</p>`;
+        }
+
+        function navigateTo(path) {
+            if (!sessionStorage.getItem('token')) {
+                alert('请先设置用户信息！');
+                return;
+            }
+            window.location.href = 'http://localhost:10001' + path;
+        }
+    </script>
+</body>
+</html> 
