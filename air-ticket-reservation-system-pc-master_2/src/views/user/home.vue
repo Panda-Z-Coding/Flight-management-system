@@ -63,11 +63,7 @@
           </div>
           <div v-if="userInfo" class="user-info">
             <p><i class="el-icon-user"></i> 用户名: {{ userInfo.username }}</p>
-            <p><i class="el-icon-phone"></i> 手机号: {{ userInfo.phone || '未设置' }}</p>
-            <p><i class="el-icon-money"></i> 余额: {{ userInfo.balance || 0 }} 元</p>
-            <p v-if="userInfo.vipStatus">
-              <i class="el-icon-star-on"></i> VIP状态: <span class="vip-tag">VIP用户</span>
-            </p>
+            <p><i class="el-icon-money"></i> 余额: {{ userInfo.balance !== undefined && userInfo.balance !== null ? userInfo.balance : 0 }} 元</p>
           </div>
           <div v-else class="user-loading">
             <el-skeleton :rows="3" animated />
@@ -142,7 +138,7 @@ export default {
         this.userInfo = JSON.parse(userDataJSON);
       } else {
         this.$axios.get('/user/info').then(res => {
-          if (res.data.code === 200) {
+          if (res.data.code === 1) { // 修改这里，将200改为1，与后端返回的code值匹配
             this.userInfo = res.data.data;
             // 缓存用户信息
             sessionStorage.setItem("user", JSON.stringify(this.userInfo));
@@ -155,7 +151,7 @@ export default {
     // 获取公告信息
     getAnnouncements() {
       this.$axios.get('/announcement/latest').then(res => {
-        if (res.data.code === 200) {
+        if (res.data.code === 1) { // 修改这里，将200改为1，与后端返回的code值匹配
           this.announcements = res.data.data;
         }
       }).catch(err => {
@@ -281,4 +277,4 @@ export default {
   font-size: 30px;
   margin-bottom: 10px;
 }
-</style> 
+</style>
