@@ -88,6 +88,10 @@ Vue.config.productionTip = false;
 Vue.use(ElementUI);
 // 过滤器
 
+// 初始化系统公告
+import initAnnouncements from './store/announcementInit';
+initAnnouncements();
+
 /* eslint-disable no-new */
 new Vue({
     el: '#app',
