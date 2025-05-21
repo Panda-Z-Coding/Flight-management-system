@@ -106,6 +106,8 @@
 </template>
 
 <script>
+import AnnouncementService from '@/store/announcement.js';
+
 export default {
   name: 'UserHome',
   data() {
@@ -129,6 +131,13 @@ export default {
     this.getUserInfo();
     this.getAnnouncements();
     this.getCities();
+    
+    // 监听公告更新事件
+    document.addEventListener('announcements-updated', this.handleAnnouncementsUpdated);
+  },
+  beforeDestroy() {
+    // 移除事件监听器
+    document.removeEventListener('announcements-updated', this.handleAnnouncementsUpdated);
   },
   methods: {
     // 获取用户信息
@@ -150,13 +159,33 @@ export default {
     },
     // 获取公告信息
     getAnnouncements() {
-      this.$axios.get('/announcement/latest').then(res => {
-        if (res.data.code === 1) { // 修改这里，将200改为1，与后端返回的code值匹配
-          this.announcements = res.data.data;
-        }
-      }).catch(err => {
-        console.error('获取公告信息失败', err);
-      });
+      // 首先从AnnouncementService获取公告
+      const serviceAnnouncements = AnnouncementService.getAnnouncements();
+      if (serviceAnnouncements && serviceAnnouncements.length > 0) {
+        this.announcements = serviceAnnouncements;
+      } else {
+        // 如果服务中没有公告，则从API获取
+        this.$axios.get('/announcement/latest').then(res => {
+          if (res.data.code === 1) { // 修改这里，将200改为1，与后端返回的code值匹配
+            this.announcements = res.data.data;
+            // 将API获取的公告添加到服务中
+            if (this.announcements && this.announcements.length > 0) {
+              this.announcements.forEach(announcement => {
+                AnnouncementService.addAnnouncement(announcement);
+              });
+            }
+          }
+        }).catch(err => {
+          console.error('获取公告信息失败', err);
+        });
+      }
+    },
+    
+    // 处理公告更新事件
+    handleAnnouncementsUpdated(event) {
+      if (event.detail && event.detail.announcements) {
+        this.announcements = event.detail.announcements;
+      }
     },
     // 获取城市列表
     getCities() {

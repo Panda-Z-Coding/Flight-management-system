@@ -7,6 +7,8 @@
 </template>
 
 <script>
+import AnnouncementService from '@/store/announcement.js';
+
 export default {
   name: 'App',
   data() {
@@ -75,15 +77,29 @@ export default {
             this.cozeClient = new CozeWebSDK.WebChatClient({
               config: {
                 bot_id: '7503108659334037544',
+                hide_entry: true // 隐藏聊天入口
               },
               componentProps: {
-                title: 'Coze测试',
+                title: 'AI智能助手',
+                visible: false // 默认不显示聊天窗口
               },
               auth: {
                 type: 'token',
-                token: 'pat_BM0XMiZcQwTA25eAgjiE8RBRx6uRRh2ifk0mdWID6z4ucOxnZ0RPKVl06dVt3IUI',
+                token: 'pat_LPhxYa5Yj7BV0WGHycQUcjvqMuTo7oa5co87JGQDEPM8ExewC2BIOUgHGsMbrLdp',
                 onRefreshToken: function () {
-                  return 'pat_BM0XMiZcQwTA25eAgjiE8RBRx6uRRh2ifk0mdWID6z4ucOxnZ0RPKVl06dVt3IUI';
+                  return 'pat_LPhxYa5Yj7BV0WGHycQUcjvqMuTo7oa5co87JGQDEPM8ExewC2BIOUgHGsMbrLdp';
+                }
+              },
+              callbacks: {
+                onMessageReceived: (message) => {
+                  // 将机器人消息添加到公告系统
+                  if (message && message.content) {
+                    AnnouncementService.addAnnouncement({
+                      title: 'AI智能助手',
+                      content: message.content,
+                      createTime: new Date().toLocaleString()
+                    });
+                  }
                 }
               }
             });

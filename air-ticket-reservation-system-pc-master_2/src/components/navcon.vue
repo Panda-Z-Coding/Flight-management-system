@@ -19,7 +19,7 @@
     <!-- 余额对话框 -->
     <el-dialog title="账户余额" :visible.sync="balanceDialogVisible" width="400px">
       <div v-if="userBalance !== null" class="balance-info">
-        <p>当前余额: <span class="balance">{{ userBalance }} 元</span></p>
+        <p>当前余额: <span class="balance">{{ userBalance || 0 }} 元</span></p>
       </div>
       <div v-else class="loading-balance">
         <el-skeleton :rows="1" animated />
@@ -35,7 +35,8 @@ export default {
       isCollapse: true,
       balanceDialogVisible: false,
       userBalance: null,
-      loading: false
+      loading: false,
+      userInfo: {}
     };
   },
   computed: {
@@ -81,10 +82,11 @@ export default {
       this.balanceDialogVisible = true;
       this.userBalance = null;
       
-      this.$axios.get('/user/balance')
+      this.$axios.get('/user/info')
         .then(response => {
-          if (response.data.code === 200) {
-            this.userBalance = response.data.data;
+          if (response.data.code === 1) {
+            this.userInfo = response.data.data;
+            this.userBalance = this.userInfo.balance;
           } else {
             this.$message.error(response.data.message || '获取余额失败');
           }
