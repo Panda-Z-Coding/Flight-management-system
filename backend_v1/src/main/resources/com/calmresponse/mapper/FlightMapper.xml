@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.calmresponse.mapper.FlightMapper">
+    <insert id="insert">
+        insert into flight
+        (flight_number, aircraft_model, seat_layout,
+         departure_city, arrival_city, departure_time, arrival_time,
+         price, total_seats, remaining_seats, create_time, update_time,
+         airline, is_delete)
+        values (#{flightNumber},#{aircraftModel},#{seatLayout},
+                #{departureCity},#{arrivalCity},#{departureTime},#{arrivalTime},
+                #{price},#{totalSeats},#{remainingSeats},#{createTime},#{updateTime},
+                #{airline},#{isDelete}
+               )
+    </insert>
+    <update id="update">
+        UPDATE flight
+        <set>
+            <if test="flightNumber != null">
+                flight_number = #{flightNumber},
+            </if>
+            <if test="aircraftModel != null">
+                aircraft_model = #{aircraftModel},
+            </if>
+            <if test="seatLayout != null">
+                seat_layout = #{seatLayout},
+            </if>
+            <if test="departureCity != null">
+                departure_city = #{departureCity},
+            </if>
+            <if test="arrivalCity != null">
+                arrival_city = #{arrivalCity},
+            </if>
+            <if test="departureTime != null">
+                departure_time = #{departureTime},
+            </if>
+            <if test="arrivalTime != null">
+                arrival_time = #{arrivalTime},
+            </if>
+            <if test="price != null">
+                price = #{price},
+            </if>
+            <if test="totalSeats != null">
+                total_seats = #{totalSeats},
+            </if>
+            <if test="remainingSeats!= null">
+                remaining_seats = #{remainingSeats},
+            </if>
+            <if test="airline != null">
+                airline = #{airline}
+            </if>
+        </set>
+        <where>
+            id = #{id}
+        </where>
+    </update>
+    <select id="pageQuery" resultType="com.calmresponse.entity.Flight">
+        SELECT * FROM flight
+        <where>
+            <if test="departureCity != null and departureCity != ''">
+                AND departure_city = #{departureCity}
+            </if>
+            <if test="arrivalCity != null and arrivalCity != ''">
+                AND arrival_city = #{arrivalCity}
+            </if>
+            <if test="departureTime != null">
+                AND departure_time = #{departureTime}
+            </if>
+            <if test="arrivalTime != null">
+                AND arrival_time = #{arrivalTime}
+            </if>
+
+        </where>
+    </select>
+</mapper>
