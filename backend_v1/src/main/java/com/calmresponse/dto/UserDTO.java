@@ -54,6 +54,11 @@ public class UserDTO implements Serializable {
     @TableField(value = "permission")
     private Byte permission;
 
+    /**
+     * 用户余额
+     */
+    @TableField(value = "balance")
+    private Double balance;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
