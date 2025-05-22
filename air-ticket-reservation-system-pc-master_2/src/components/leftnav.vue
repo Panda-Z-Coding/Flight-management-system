@@ -39,12 +39,7 @@
           <span slot="title">订单管理</span>
         </el-menu-item>
         
-        <!-- 座位管理和机型管理功能已移除 -->
-        
-        <el-menu-item index="/announcement/announcement">
-          <i class="el-icon-bell"></i>
-          <span slot="title">公告管理</span>
-        </el-menu-item>
+        <!-- 座位管理、机型管理和公告管理功能已移除 -->
       </template>
       
       <!-- 普通用户菜单 -->

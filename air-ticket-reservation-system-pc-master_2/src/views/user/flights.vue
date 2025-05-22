@@ -277,8 +277,6 @@ export default {
       this.searchForm.departureCity = this.searchForm.departureCity ? this.searchForm.departureCity.trim():'';
       this.searchForm.arrivalCity = this.searchForm.arrivalCity ? this.searchForm.arrivalCity.trim():'';
       
-      
-      
       // 更新查询参数并执行查询
       this.searchFlights()
     },
@@ -359,6 +357,170 @@ export default {
       });
     }
   },
+  methods: {
+    async searchFlights() {
+      this.loading = true;
+      try{
+      //构建参数
+      const params = {
+        page: this.searchForm.page,
+        pageSize: this.searchForm.pageSize
+      };
+
+      if (this.searchForm.departureCity && this.searchForm.departureCity.trim()) {
+        params.departureCity = this.searchForm.departureCity.trim();
+
+      }
+
+      if (this.searchForm.arrivalCity && this.searchForm.arrivalCity.trim()) {
+        params.arrivalCity = this.searchForm.arrivalCity.trim();
+      }
+
+      if (this.searchForm.date) {
+        params.date = this.searchForm.date;
+      }
+    
+      const response = await this.$axios.post("/user/flights/page", params, {
+        headers: {
+          'Authorization': sessionStorage.getItem('token') ? `Bearer ${sessionStorage.getItem('token')}` : '',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      })
+
+      if(response.data.code === 1){
+        this.flightList = response.data.data.list
+        this.total = response.data.data.total
+
+        //根据查询条件给出相应的提示信息
+        const hasSearchCriteria = params.departureCity || params.arrivalCity || params.date;
+        if (hasSearchCriteria) {
+          const message = this.flightList.length ? '查询成功' : '未找到符合条件的航班';
+          this.$message[this.flightList.length ? 'success' : 'info'](message);
+        }
+      } else {
+        this.$message.error(response.data.message || '获取航班列表失败');
+      }
+    } catch (error) {
+      console.error('获取航班列表失败:', error);
+      this.$message.error('获取航班列表失败，请稍后重试');
+    } finally {
+      this.loading = false;
+    }
+    },
+
+    // 查询按钮点击事件
+    handleSearch() {
+      // 验证选择的日期是否早于今天
+      const selectedDate = new Date(this.searchForm.date);
+      const today = new Date();
+      //清除时间
+      today.setHours(0, 0, 0, 0);
+
+      if(selectedDate < today){
+        this.$message.error('不能查询今天之前的航班')
+        return;
+      }
+
+      // 重置页码到第一页
+      this.searchForm.page = 1
+
+      // 去除出发城市和到达城市的首尾空格并执行搜索
+      this.searchForm.departureCity = this.searchForm.departureCity ? this.searchForm.departureCity.trim():'';
+      this.searchForm.arrivalCity = this.searchForm.arrivalCity ? this.searchForm.arrivalCity.trim():'';
+      
+      // 更新查询参数并执行查询
+      this.searchFlights()
+    },
+
+    // 重置按钮点击事件
+    resetQuery() {
+      // 重置查询参数
+      this.searchForm = {
+        page: 1,
+        pageSize: 10,
+        departureCity: '',
+        arrivalCity:'',
+        departureTime:'',
+        arrivalTime:''
+      }
+       // 提示用户
+       this.$message.success('已重置查询条件')
+
+      // 重新获取列表
+      this.searchFlights()
+    },
+      
+    bookFlight(flight) {
+      this.selectedFlight = flight;
+      this.bookingForm.flightId = flight.id;
+      this.loadPassengers();
+      this.bookingDialogVisible = true;
+    },
+    loadPassengers() {
+      this.passengersLoading = true;
+      this.$axios.get('/user/passengers')
+        .then(response => {
+          this.passengersLoading = false;
+          if (response.data.code === 200) {
+            this.passengers = response.data.data;
+            if (this.passengers.length === 0) {
+              this.$message.info('您还没有添加乘客信息，请先添加乘客');
+            }
+          } else {
+            this.$message.error(response.data.message || '获取乘客信息失败');
+          }
+        })
+        .catch(error => {
+          this.passengersLoading = false;
+          this.$message.error('获取乘客信息失败，请稍后重试');
+          console.error(error);
+        });
+    },
+    submitBooking() {
+      this.$refs.bookingForm.validate(valid => {
+        if (valid) {
+          this.bookingSubmitting = true;
+          this.$axios.post('/user/orders', this.bookingForm)
+            .then(response => {
+              this.bookingSubmitting = false;
+              if (response.data.code === 200) {
+                this.$message.success('预订成功');
+                this.bookingDialogVisible = false;
+                // 跳转到订单页面进行支付
+                this.$router.push({
+                  path: '/user/orders',
+                  query: { orderId: response.data.data.orderId }
+                });
+              } else {
+                this.$message.error(response.data.message || '预订失败');
+              }
+            })
+            .catch(error => {
+              this.bookingSubmitting = false;
+              if (error.response && error.response.data) {
+                this.$message.error(error.response.data.message || '预订失败');
+              } else {
+                this.$message.error('预订失败，请稍后重试');
+              }
+              console.error(error);
+            });
+        }
+      });
+    },
+    // 处理分页大小变化
+    handleSizeChange(val) {
+      this.searchForm.pageSize = val;
+      this.searchFlights();
+    },
+    
+    // 处理页码变化
+    handleCurrentChange(val) {
+      this.searchForm.page = val;
+      this.searchFlights();
+    }
+  },
+  
   mounted() {
     // 页面加载时自动查询航班
     this.searchFlights();
