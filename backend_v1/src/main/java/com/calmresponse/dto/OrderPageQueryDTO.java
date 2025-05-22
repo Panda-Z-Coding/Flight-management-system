@@ -1,10 +1,16 @@
 package com.calmresponse.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class OrderPageQueryDTO implements Serializable {
 
 
@@ -22,4 +28,6 @@ public class OrderPageQueryDTO implements Serializable {
 
     //身份证
     private String passengerIdCard;
+
+    private String username;
 }

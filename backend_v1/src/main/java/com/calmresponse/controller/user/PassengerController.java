@@ -2,12 +2,12 @@ package com.calmresponse.controller.user;
 
 
 
-import com.calmresponse.dto.FlightPageQueryDTO;
-import com.calmresponse.dto.PageQueryDTO;
-import com.calmresponse.dto.PassengerDTO;
-import com.calmresponse.dto.PassengerPageQueryDTO;
+import com.calmresponse.common.ErrorCode;
+import com.calmresponse.constant.UserConstant;
+import com.calmresponse.dto.*;
 import com.calmresponse.entity.Flight;
 import com.calmresponse.entity.Passenger;
+import com.calmresponse.exception.BusinessException;
 import com.calmresponse.result.Result;
 import com.calmresponse.service.PassengerService;
 import com.github.pagehelper.PageInfo;
@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @RestController
@@ -39,9 +40,17 @@ public class PassengerController {
         return Result.success() ;
     }
     @PostMapping("/page")
-    public Result<PageInfo<Passenger>> pageQuery(@RequestBody PageQueryDTO pageQueryDTO) {
-        log.info("分页查询该用户乘客信息:{}",pageQueryDTO);
-        PageInfo<Passenger> passengerList = passengerService.pageQuery(pageQueryDTO);
+    public Result<PageInfo<Passenger>> pageQuery(@RequestBody UserPageQueryDTO userPageQueryDTO, HttpServletRequest request) {
+        // 从 session 中获取用户信息
+        Object userObj = request.getSession().getAttribute(UserConstant.USER_LOGIN_STATUS);
+        if (userObj == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN, "用户未登录");
+        }
+        log.info("分页查询该用户乘客信息:{}",userPageQueryDTO);
+        UserDTO userDTO = (UserDTO) userObj;
+        String username = userDTO.getUsername();
+        userPageQueryDTO.setUsername(username);
+        PageInfo<Passenger> passengerList = passengerService.pageQuery(userPageQueryDTO);
         return Result.success(passengerList);
     }
 

@@ -92,6 +92,7 @@ export default {
                 // 管理员
                 sessionStorage.setItem('token', userData.id || res.data.data)
                 sessionStorage.setItem('role', '1')
+                sessionStorage.setItem('username', userData.username)
                 this.$router.push('/charts/statistics')
               } else {
                 // 普通用户尝试通过管理员入口登录
@@ -128,7 +129,7 @@ export default {
                 // 使用用户ID作为token
                 sessionStorage.setItem('token', userData.id)
                 sessionStorage.setItem('role', '0') // 设置为普通用户角色
-                // 延迟一点执行跳转，确保sessionStorage更新完成
+                
                 setTimeout(() => {
                   this.$router.push('/user/home')
                 }, 100)

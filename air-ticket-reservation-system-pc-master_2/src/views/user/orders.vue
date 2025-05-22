@@ -109,6 +109,19 @@
       </el-table-column>
     </el-table>
 
+    <!-- 分页区域 -->
+    <div class="pagination-container">
+      <el-pagination
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="currentPage"
+        :page-sizes="[10, 20, 30, 50]"
+        :page-size="currentPageSize"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total">
+      </el-pagination>
+    </div>
+
     <!-- 订单详情对话框 -->
     <el-dialog title="订单详情" :visible.sync="detailDialogVisible" width="600px">
       <div v-if="selectedOrder" class="order-detail">
@@ -241,29 +254,58 @@ export default {
   },
   methods: {
     // 获取订单列表
-    getOrders() {
+    async getOrders() {
       this.loading = true;
-      const params = {
-        username: this.$store.state.user.username
-      };
-      if (this.filterStatus !== '') {
-        params.status = this.filterStatus;
-      }
-      
-      this.$axios.get('/user/order', { params })
-        .then(response => {
+
+      try {
+        // 从会话存储中获取用户信息
+        const userInfo = JSON.parse(sessionStorage.getItem('user')) || {};
+        const username = userInfo.username;
+
+        if(!username){
+          this.$message.warning('请先登录');
           this.loading = false;
-          if (response.data.code === 1) {
-            this.orderList = response.data.data;
-          } else {
-            this.$message.error(response.data.message || '获取订单列表失败');
+          return;
+        }
+        const params = {
+          username:username,
+          page: this.currentPage || 1,
+          pageSize: this.pageSize || 10
+        };
+
+        // 添加状态筛选条件
+        if (this.filterStatus !== '') {
+          params.status = this.filterStatus;
+          filterStatus;
+        }
+
+        // 添加请求超时处理
+        const response = await this.$axios.post('/user/order/page', params)
+
+        if(response.data.code === 1){
+          this.orderList = response.data.data.list; 
+          this.total = response.data.data.total;
+          
+          // 如果没有数据，显示提示信息
+          if (this.orderList.length === 0) {
+            this.$message.info('暂无订单数据');
           }
-        })
-        .catch(error => {
-          this.loading = false;
+        } else {
+          this.$message.warning(response.data.message || '获取订单列表失败');
+        }
+      } catch (error) { 
+        console.error('获取订单列表错误:', error);
+        // 区分网络错误和其他错误
+        if (error.message && error.message.includes('timeout')) {
+          this.$message.error('请求超时，请检查网络连接');
+        } else if (error.response) {
+          this.$message.error(`获取订单列表失败: ${error.response.data.message || '服务器错误'}`);
+        } else {
           this.$message.error('获取订单列表失败，请稍后重试');
-          console.error(error);
-        });
+        }
+      } finally {
+        this.loading = false;
+      }
     },
     
     // 获取状态文本
@@ -381,6 +423,25 @@ export default {
       if (!dateTimeStr) return '';
       const date = new Date(dateTimeStr);
       return date.toLocaleString();
+    },
+    
+    // 处理页码变化
+    handleCurrentChange(page) {
+      this.currentPage = page;
+      this.getOrders();
+    },
+    
+    // 处理每页条数变化
+    handleSizeChange(size) {
+      this.pageSize = size;
+      this.currentPage = 1;
+      this.getOrders();
+    },
+
+    // 处理状态筛选变化
+    handleStatusChange() {
+      this.currentPage = 1; // 重置为第一页
+      this.getOrders();
     }
   },
   mounted() {

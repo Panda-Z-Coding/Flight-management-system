@@ -70,13 +70,13 @@
       </el-table-column>
       <el-table-column align="center" sortable prop="arrivalTime" label="到达时间" width="150">
       </el-table-column>
-      <el-table-column align="center" sortable prop="price" label="价格" width="150">
-      </el-table-column>
-      <el-table-column align="center" sortable prop="aircraftModel" label="飞机型号" width="150">
-      </el-table-column>
       <el-table-column align="center" sortable prop="remainingSeats" label="剩余座位" width="150">
       </el-table-column>
       <el-table-column align="center" sortable prop="totalSeats" label="总座位数" width="150">
+      </el-table-column>
+      <el-table-column align="center" sortable prop="price" label="价格" width="150">
+      </el-table-column>
+      <el-table-column align="center" sortable prop="aircraftModel" label="飞机型号" width="150">
       </el-table-column>
       <el-table-column align="center"  prop="airline" label="航空公司" width="150">
       </el-table-column>
@@ -92,10 +92,6 @@
       <el-table-column align="center" sortable prop="createTime" label="创建时间" width="150">
       </el-table-column>
       <el-table-column align="center" sortable prop="updateTime" label="修改时间" width="150">
-      </el-table-column>
-      <el-table-column align="center" sortable prop="creator" label="创建人" width="100">
-      </el-table-column>
-      <el-table-column align="center" sortable prop="modifier" label="修改人" width="100">
       </el-table-column>
 
       <el-table-column label="操作" min-width="180" align="center">
@@ -169,9 +165,8 @@
         </el-form-item>
         <el-form-item label="航班状态" prop="status">
           <el-select size="small" v-model="editFlightForm.status" placeholder="请选择" class="userRole">
-            <el-option label="正在飞行" :value="1"></el-option>
+            <el-option label="已起飞" :value="1"></el-option>
             <el-option label="未出发" :value="0"></el-option>
-            <el-option label="推迟" :value="2"></el-option>
           </el-select>
         </el-form-item>
       </el-form>
@@ -278,9 +273,9 @@ export default {
         departureTime:'',
         arrivalTime:'',
         status: 0,
-        totalSeats:'',
-        remainingSeats:'',
-        price:'',
+        totalSeats:0,
+        remainingSeats:0,
+        price:0,
         airline: ''
       },
       placeholder:'',
@@ -311,9 +306,9 @@ export default {
         departureTime:'',
         arrivalTime:'',
         status:'',
-        totalSeats:'',
-        remainingSeats:'',
-        price:'',
+        totalSeats:0,
+        remainingSeats:0,
+        price:0,
         airline: '',
         id: ''
       },
@@ -458,7 +453,7 @@ export default {
             // 无论成功失败都结束加载状态
             this.loading = false;
             
-            if (res.data.code === 200) {
+            if (res.data.code === 1) {
               // 关闭对话框
               this.editFormVisible = false
               // 刷新数据
@@ -672,75 +667,54 @@ export default {
         this.userKind = '';
       }
     },
+    // 获取航班列表
     queryAll() {
-      this.loading = true; // 添加加载状态
+      this.loading = true;
       
-      this.$axios.post('/admin/flights', {
-        params: {
-          departureCity: this.formInline.departureCity,
-          arrivalCity: this.formInline.arrivalCity,
-          flightNumber: this.formInline.flightNumber,
-          departureTime: this.formInline.departureTime
-        }
-      }).then(res => {
-        this.loading = false; // 结束加载状态
-        
-        if(res.data.code === 1){
-          this.flightData = res.data.data.list
-          this.pageNum = res.data.data.current
-          this.total = res.data.data.total
-        } else {
-          this.$message.warning(res.data.data)
-        }
-      }).catch(err => {
-        this.loading = false; // 确保错误时也结束加载状态
-        this.$message.error("获取航班数据失败：" + (err.message || "未知错误"));
-      })
-    },
-    validateArrivalTime(rule, value, callback) {
-      if (this.editFormVisible) {
-        // 编辑表单的验证
-        if (value && this.editFlightForm.departureTime && new Date(value) <= new Date(this.editFlightForm.departureTime)) {
-          callback(new Error('到达时间必须晚于出发时间'));
-        } else {
-          callback();
-        }
-      } else {
-        // 新增表单的验证
-        if (value && this.editAddFlightForm.departureTime && new Date(value) <= new Date(this.editAddFlightForm.departureTime)) {
-          callback(new Error('到达时间必须晚于出发时间'));
-        } else {
-          callback();
-        }
-      }
-    },
-    validateDestinationAirport(rule, value, callback) {
-      // 获取当前正在编辑的表单中的出发城市
-      const departureCity = this.editFormVisible ? this.editFlightForm.departureCity : this.editAddFlightForm.departureCity;
+      // 构建查询参数
+      const params = {
+        page: this.pageNum,
+        pageSize: this.pageSize,
+        departureCity: this.formInline.departureCity || null,
+        arrivalCity: this.formInline.arrivalCity || null,
+        flightNumber: this.formInline.flightNumber || null,
+        departureTime: this.formInline.departureTime || null
+      };
       
-      // 如果目的地与出发地相同，且两者都已设置值，则返回错误
-      if (value && departureCity && value === departureCity) {
-        callback(new Error('目的机场不能与起始机场相同'));
-      } else {
-        callback();
-      }
+      // 移除值为null或undefined的属性
+      Object.keys(params).forEach(key => {
+        if (params[key] === null || params[key] === undefined) {
+          delete params[key];
+        }
+      });
+      
+      // 使用POST方法发送请求，符合接口文档要求
+      this.$axios.post('/admin/flights/page', params)
+        .then(res => {
+          this.loading = false;
+          if (res.data.code === 1) {
+            // 更新数据列表和分页信息
+            this.flightData = res.data.data.list;
+            this.total = res.data.data.total;
+            
+            // 如果没有数据，显示提示信息
+            if (this.flightData.length === 0) {
+              this.$message.info('没有找到符合条件的航班');
+            }
+          } else {
+            this.$message.error(res.data.message || '获取航班列表失败');
+          }
+        })
+        .catch(error => {
+          this.loading = false;
+          console.error('获取航班列表失败:', error);
+          this.$message.error('获取航班列表失败，请稍后重试');
+        });
     },
-    validateRemainingSeats(rule, value, callback) {
-      if (this.editFormVisible) {
-        // 编辑表单的验证
-        if (value > this.editFlightForm.totalSeats) {
-          callback(new Error('剩余座位数不能大于总座位数'));
-        } else {
-          callback();
-        }
-      } else {
-        // 新增表单的验证
-        if (value > this.editAddFlightForm.totalSeats) {
-          callback(new Error('剩余座位数不能大于总座位数'));
-        } else {
-          callback();
-        }
-      }
+    // 搜索按钮点击事件
+    search() {
+      this.pageNum = 1; // 重置为第一页
+      this.queryAll();
     },
     queryAirlines(){
       // 使用静态数据代替API调用
@@ -765,9 +739,9 @@ export default {
         departureTime: '',
         arrivalTime: '',
         status: 0,
-        totalSeats: '',
-        remainingSeats: '',
-        price: '',
+        totalSeats: 0,
+        remainingSeats: 0,
+        price: 0,
         airline: ''
       };
       // 如果表单已经挂载，则重置表单验证
@@ -785,9 +759,9 @@ export default {
         departureTime: '',
         arrivalTime: '',
         status: '',
-        totalSeats: '',
-        remainingSeats: '',
-        price: '',
+        totalSeats: 0,
+        remainingSeats: 0,
+        price: 0,
         airline: '',
         id: ''
       };

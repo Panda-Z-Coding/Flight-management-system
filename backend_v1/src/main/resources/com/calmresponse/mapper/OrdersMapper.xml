@@ -66,9 +66,10 @@
         <if test="passengerName!= null">
             and passenger_name = #{passengerName}
         </if>
-        <if test="passengerIdCard!= null">
-            and passenger_id_card = #{passengerIdCard}
-        </if>
+            <if test="passengerIdCard!= null">
+                and passenger_id_card = #{passengerIdCard}
+            </if>
+            and username=#{username}
         </where>
     </select>
 

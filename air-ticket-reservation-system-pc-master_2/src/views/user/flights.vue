@@ -120,26 +120,24 @@
         <el-form-item label="航班号">
           <span>{{ selectedFlight.flightNumber }}</span>
         </el-form-item>
-        <el-form-item label="出发/到达">
-          <span>{{ selectedFlight.departure }} - {{ selectedFlight.arrival }}</span>
+        <el-form-item label="出发城市">
+          <span>{{ selectedFlight.departureCity }}</span>
+        </el-form-item>
+        <el-form-item label="到达城市">
+          <span>{{ selectedFlight.arrivalCity }}</span>
         </el-form-item>
         <el-form-item label="出发时间">
           <span>{{ selectedFlight.departureTime }}</span>
         </el-form-item>
+        <el-form-item label="到达时间">
+          <span>{{ selectedFlight.arrivalTime }}</span>
+        </el-form-item>
         <el-form-item label="价格">
           <span>{{ selectedFlight.price }} 元</span>
         </el-form-item>
-        <el-form-item label="座位类型" prop="seatType">
-          <el-select v-model="bookingForm.seatType" placeholder="请选择座位类型">
-            <el-option label="经济舱" value="ECONOMY"></el-option>
-            <el-option label="商务舱" value="BUSINESS"></el-option>
-            <el-option label="头等舱" value="FIRST"></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="乘客" prop="passengerIds">
+        <el-form-item label="乘客" prop="passengerId">
           <el-select
-            v-model="bookingForm.passengerIds"
-            multiple
+            v-model="bookingForm.passengerId"
             placeholder="请选择乘客"
             :loading="passengersLoading">
             <el-option
@@ -188,8 +186,8 @@ export default {
       selectedFlight: {},
       bookingForm: {
         flightId: null,
-        seatType: 'ECONOMY',
-        passengerIds: []
+        passengers: [],
+        passengersLoading: false,
       },
       bookingRules: {
         seatType: [
@@ -301,37 +299,34 @@ export default {
       this.searchFlights()
     },
       
-    bookFlight(flight) {
-      this.selectedFlight = flight;
-      this.bookingForm.flightId = flight.id;
-      this.loadPassengers();
-      this.bookingDialogVisible = true;
-    },
+    // 加载乘客列表
     loadPassengers() {
       this.passengersLoading = true;
-      this.$axios.get('/user/passengers')
-        .then(response => {
-          this.passengersLoading = false;
-          if (response.data.code === 200) {
-            this.passengers = response.data.data;
-            if (this.passengers.length === 0) {
-              this.$message.info('您还没有添加乘客信息，请先添加乘客');
-            }
-          } else {
-            this.$message.error(response.data.message || '获取乘客信息失败');
-          }
-        })
-        .catch(error => {
-          this.passengersLoading = false;
-          this.$message.error('获取乘客信息失败，请稍后重试');
-          console.error(error);
-        });
+      const username = localStorage.getItem('username');
+      
+      this.$axios.get('/api/passengers', {
+        params: { username: username }
+      }).then(response => {
+        this.passengers = response.data.data.list || [];
+        this.passengersLoading = false;
+      }).catch(error => {
+        console.error('获取乘客列表失败', error);
+        this.$message.error('获取乘客列表失败');
+        this.passengersLoading = false;
+      });
+    },
+    // 打开预订对话框时加载乘客列表
+    bookFlight(flight) {
+      this.selectedFlight = flight;
+      this.bookingForm.flightId = flight.id || flight.flightId;
+      this.bookingDialogVisible = true;
+      this.loadPassengers(); // 调用加载乘客列表方法
     },
     submitBooking() {
       this.$refs.bookingForm.validate(valid => {
         if (valid) {
           this.bookingSubmitting = true;
-          this.$axios.post('/user/orders', this.bookingForm)
+          this.$axios.post('/user/orders/submit', this.bookingForm)
             .then(response => {
               this.bookingSubmitting = false;
               if (response.data.code === 200) {

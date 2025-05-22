@@ -10,7 +10,7 @@ spring:
       driver-class-name: com.mysql.cj.jdbc.Driver
       url: jdbc:mysql://127.0.0.1:3306/calmresponse?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       username: root
-      password: lcz050906
+      password: 123456
 
 mybatis:
   #mapper配置文件
