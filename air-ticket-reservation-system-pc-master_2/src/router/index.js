@@ -97,15 +97,8 @@ const routes = [
       
       // 行李托运功能已移除
       
-      {
-      path: '/announcement/announcement',
-      name: 'announcement',
-        component: () => import('../views/announcement/announcement.vue'),
-        meta: {
-          requireAuth: true,
-          adminOnly: true
-        }
-      },
+      // 公告管理功能已移除
+
       {
         path: '/user/flights',
         name: '航班查询',
