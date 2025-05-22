@@ -80,7 +80,7 @@ export default {
                 hide_entry: true // 隐藏聊天入口
               },
               componentProps: {
-                title: 'AI智能助手',
+                title: '智能航班助手',
                 visible: false // 默认不显示聊天窗口
               },
               auth: {
