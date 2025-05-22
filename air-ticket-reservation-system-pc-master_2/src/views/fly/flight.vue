@@ -527,7 +527,7 @@ export default {
         this.loading = true;
         
         // 执行删除操作
-        this.$axios.delete("/admin/flights/" + flightId).then(res =>{
+        this.$axios.delete("/admin/flights").then(res =>{
           // 无论成功失败都结束加载状态
           this.loading = false;
           
