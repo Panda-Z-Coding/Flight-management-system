@@ -69,7 +69,9 @@
             <if test="passengerIdCard!= null">
                 and passenger_id_card = #{passengerIdCard}
             </if>
-            and username=#{username}
+            <if test = "username != null">
+                and username=#{username}
+            </if>
         </where>
     </select>
 
