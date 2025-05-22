@@ -59,7 +59,19 @@
     </div>
 
     <!--列表-->
-    <el-table size="small" :data="flightData" highlight-current-row v-loading="loading" border element-loading-text="拼命加载中" style="width: 100%;">
+    <el-table 
+      size="small" 
+      :data="flightData" 
+      highlight-current-row 
+      v-loading="loading" 
+      border 
+      element-loading-text="拼命加载中" 
+      style="width: 100%;"
+      @selection-change="handleSelectionChange">
+      <el-table-column
+        type="selection"
+        width="55">
+      </el-table-column>
       <el-table-column align="center"  prop="departureCity" label="起飞城市" width="150">
       </el-table-column>
       <el-table-column align="center"  prop="arrivalCity" label="降落城市" width="150">
@@ -448,8 +460,28 @@ export default {
           // 设置加载状态
           this.loading = true;
           
+          // 确保 remainingSeats 是数字类型
+          const flightData = { ...this.editFlightForm };
+          
+          // 确保数值字段是数字类型
+          if (flightData.remainingSeats!== undefined) {
+            flightData.remainingSeats = parseInt(flightData.remainingSeats, 10);
+          }
+          if (flightData.totalSeats !== undefined) {
+            flightData.totalSeats = Number(flightData.totalSeats);
+          }
+          if (flightData.price !== undefined) {
+            flightData.price = Number(flightData.price);
+          }
+          
           // 保存修改后的航班信息
-          this.$axios.put("/admin/flights", this.editFlightForm).then(res => {
+          this.$axios.put("/admin/flights", flightData, {
+          headers: {
+            'Authorization': sessionStorage.getItem('token') ? `Bearer ${sessionStorage.getItem('token')}` : '',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+      }).then(res => {
             // 无论成功失败都结束加载状态
             this.loading = false;
             
@@ -526,20 +558,37 @@ export default {
           // 设置加载状态
           this.loading = true;
           
-          // 根据后端逻辑，设置默认值
-          const flightData = {...this.editAddFlightForm};
+          // 创建一个新对象，避免直接修改表单数据
+          const flightData = { ...this.editAddFlightForm };
           
-          // 如果没有设置剩余座位数，默认等于总座位数（与后端逻辑一致）
-          if (flightData.remainingSeats === '' && flightData.totalSeats) {
-            flightData.remainingSeats = flightData.totalSeats;
+          // 确保数值字段是数字类型
+          if (flightData.remainingSeats!== undefined) {
+            flightData.remainingSeats = parseInt(flightData.remainingSeats, 10);
+          }
+          if (flightData.totalSeats !== undefined) {
+            flightData.totalSeats = Number(flightData.totalSeats);
+          }
+          if (flightData.price !== undefined) {
+            flightData.price = Number(flightData.price);
           }
           
-          // 提交新增航班数据
-          this.$axios.post("/admin/flights", flightData).then(res => {
+          // 如果剩余座位数未设置，则默认等于总座位数
+          if (!flightData.remainingSeats && flightData.totalSeats) {
+            flightData.remainingSeats = flightData.totalSeats.toString();
+          }
+          
+          // 提交数据
+          this.$axios.put("/admin/flights", flightData, {
+            headers: {
+              'Authorization': sessionStorage.getItem('token') ? `Bearer ${sessionStorage.getItem('token')}` : '',
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+        }
+      }).then(res => {
             // 无论成功失败都结束加载状态
             this.loading = false;
             
-            if (res.data.code === 200) {
+            if (res.data.code === 1) {
               // 关闭对话框
               this.addFormVisible = false
               // 刷新数据

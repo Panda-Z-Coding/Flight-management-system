@@ -17,37 +17,37 @@
         UPDATE flight
         <set>
             <if test="flightNumber != null">
-                flight_number = #{flightNumber},
+                and flight_number = #{flightNumber}
             </if>
             <if test="aircraftModel != null">
-                aircraft_model = #{aircraftModel},
+                and aircraft_model = #{aircraftModel}
             </if>
             <if test="seatLayout != null">
-                seat_layout = #{seatLayout},
+                and seat_layout = #{seatLayout}
             </if>
             <if test="departureCity != null">
-                departure_city = #{departureCity},
+                and departure_city = #{departureCity}
             </if>
             <if test="arrivalCity != null">
-                arrival_city = #{arrivalCity},
+                and arrival_city = #{arrivalCity}
             </if>
             <if test="departureTime != null">
-                departure_time = #{departureTime},
+                and departure_time = #{departureTime}
             </if>
             <if test="arrivalTime != null">
-                arrival_time = #{arrivalTime},
+                and arrival_time = #{arrivalTime}
             </if>
             <if test="price != null">
-                price = #{price},
+                and price = #{price},
             </if>
             <if test="totalSeats != null">
-                total_seats = #{totalSeats},
+                total_seats = #{totalSeats}
             </if>
             <if test="remainingSeats!= null">
-                remaining_seats = #{remainingSeats},
+                and remaining_seats = #{remainingSeats}
             </if>
             <if test="airline != null">
-                airline = #{airline}
+                and airline = #{airline}
             </if>
         </set>
         <where>
