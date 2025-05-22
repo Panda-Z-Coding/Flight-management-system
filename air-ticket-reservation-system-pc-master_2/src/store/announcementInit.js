@@ -7,13 +7,11 @@ const initAnnouncements = () => {
   AnnouncementService.addAnnouncement({
     title: '系统公告🤩',
     content: '欢迎使用航空订票系统',
-    createTime: '2025-05-21 13:14:00'
   });
 
   AnnouncementService.addAnnouncement({
     title: '优惠活动❤️',
     content: '新用户注册即可获得100元优惠券',
-    createTime: '2025-05-21 13:14:00'
   });
 
   AnnouncementService.addAnnouncement({

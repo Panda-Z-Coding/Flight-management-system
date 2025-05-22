@@ -30,6 +30,8 @@
         </where>
     </update>
     <select id="pageQuery" resultType="com.calmresponse.entity.Passenger">
-        SELECT * FROM passenger
+        SELECT *
+        FROM passenger
+        where username = #{username}
     </select>
 </mapper>

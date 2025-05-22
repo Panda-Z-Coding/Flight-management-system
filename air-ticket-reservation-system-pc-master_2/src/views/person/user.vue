@@ -310,18 +310,31 @@ export default {
       this.queryAll()
     },
     queryAll() {
-      this.$axios.get('/admin/user/page', {
+      this.$axios.post('/admin/user/page', {
         params: {
-          pageNum: this.pageNum,
+          page: this.pageNum,
           pageSize: this.pageSize,
-          username: this.formInline.username,
-          status: this.formInline.status
+          username: this.formInline.username || undefined
         }
       }).then(res => {
         if (res.data.code === 1) {
-          this.userData = res.data.data.records
-          this.pageNum = res.data.data.current
-          this.total = res.data.data.total
+          this.userData = res.data.data.list
+          this.total = res.data.data.total || (res.data.data ? 1 : 0)
+          
+          // 如果返回的是单个对象而不是数组，转换为数组
+          if (!Array.isArray(this.userData)) {
+            this.userData = [this.userData]
+          }
+          
+          // 处理日期格式
+          this.userData.forEach(user => {
+            if (user.createTime) {
+              user.createTime = this.formatDateTime(user.createTime)
+            }
+            if (user.updateTime) {
+              user.updateTime = this.formatDateTime(user.updateTime)
+            }
+          })
         } else {
           this.$message.error(res.data.message || '获取用户列表失败')
         }
@@ -329,7 +342,24 @@ export default {
         console.error('获取用户列表失败:', error)
         this.$message.error('获取用户列表失败，请稍后重试')
       })
-    }
+    },
+    // 格式化日期时间
+    formatDateTime(dateTimeStr) {
+      if (!dateTimeStr) return ''
+      
+      // 处理ISO格式的日期时间字符串
+      const date = new Date(dateTimeStr)
+      if (isNaN(date.getTime())) return dateTimeStr
+      
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      const hours = String(date.getHours()).padStart(2, '0')
+      const minutes = String(date.getMinutes()).padStart(2, '0')
+      const seconds = String(date.getSeconds()).padStart(2, '0')
+      
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+    },
   },
   /* vue的生命周期函数
      当页面加载完毕就会执行created里面的函数

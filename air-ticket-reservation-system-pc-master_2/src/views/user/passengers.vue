@@ -36,7 +36,12 @@
       <el-table-column
         prop="status"
         label="状态"
-        width="150">
+        width="100">
+        <template slot-scope="scope">
+          <el-tag :type="scope.row.status === 0 ? 'success' : 'info'">
+            {{ scope.row.status === 0 ? '正常' : '其他' }}
+          </el-tag>
+        </template>
       </el-table-column>
       <el-table-column
         prop="createTime"
@@ -89,7 +94,10 @@
           <el-input v-model="passengerForm.phoneNumber" placeholder="请输入电话号码"></el-input>
         </el-form-item>
         <el-form-item label="状态" prop="status">
-          <el-input v-model="passengerForm.status" placeholder="状态"></el-input>
+          <el-select v-model="passengerForm.status" placeholder="请选择状态">
+            <el-option :value="0" label="正常"></el-option>
+            <el-option :value="1" label="其他"></el-option>
+          </el-select>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -132,6 +140,9 @@ export default {
       dialogTitle: '添加乘客',
       isEdit: false,
       submitting: false,
+      currentPage: 1,
+      currentPageSize: 10,
+      total: 0,
       passengerForm: {
         id: null,
         name: '',
@@ -179,15 +190,21 @@ export default {
     async getPassengers() {
       this.loading = true;
 
-      try{
-        const params = {
-        page: this.currentPage,
-        pageSize: this.currentPageSize,
-        departureCity: this.formInline.departureCity.trim() || '',
-        arrivalCity: this.formInline.arrivalCity.trim() || '',
-        flightNumber: this.formInline.flightNumber.trim() || '',
-        departureTime: this.formInline.departureTime.trim() || ''
+      try {
+        // 从会话存储中获取用户信息
+        const userInfo = JSON.parse(sessionStorage.getItem('user')) || {};
+        const username = userInfo.username;
 
+        if(!username){
+          this.$message.warning('请先登录');
+          this.loading = false;
+          return;
+        }
+
+        const params = {
+          username: username,
+          page: this.currentPage,
+          pageSize: this.currentPageSize
         };
 
         const response = await this.$axios.post('/user/passenger/page', params);
@@ -196,34 +213,54 @@ export default {
           this.passengerList = response.data.data.list;
           this.total = response.data.data.total;
         } else {
-          this.$message.warning(response.data.message);
+          this.$message.warning(response.data.message || '获取乘客列表失败');
         }
       } catch (error) { 
-        this.loading = false;
+        console.error('获取乘客列表错误:', error);
         this.$message.error('获取乘客列表失败，请稍后重试');
-        console.error(error);
-
-      };
+      } finally {
+        this.loading = false;
+      }
+    },
+    
+    // 处理页码变化
+    handleCurrentChange(page) {
+      this.currentPage = page;
+      this.getPassengers();
+    },
+    
+    // 处理每页条数变化
+    handleSizeChange(size) {
+      this.currentPageSize = size;
+      this.currentPage = 1;
+      this.getPassengers();
     },
     
     // 显示添加乘客对话框
     showAddDialog() {
-      this.isEdit = false;
-      this.dialogTitle = '添加乘客';
-      this.passengerForm = {
-        id: null,
-        name: '',
-        idCard: '',
-        phoneNumber: '',
-        status: 0
-      };
-      this.dialogVisible = true;
-      // 在下一个事件循环中重置表单验证
+      this.dialogVisible = false;
+      
       this.$nextTick(() => {
-        if (this.$refs.passengerForm) {
-          this.$refs.passengerForm.resetFields();
-        }
+        this.isEdit = false;
+        this.dialogTitle = '添加乘客';
+
+        // 重置表单数据
+        this.passengerForm = {
+          id: null,
+          name: '',
+          idCard: '',
+          phoneNumber: '',
+          status: 0
+        };
       });
+      
+    // 重置表单验证
+    if (this.$refs.passengerForm) {
+      this.$refs.passengerForm.resetFields();
+      this.$refs.passengerForm.clearValidate();
+    }
+      // 先打开对话框
+      this.dialogVisible = true;
     },
     
     // 显示编辑乘客对话框
@@ -240,6 +277,10 @@ export default {
         if (valid) {
           this.submitting = true;
           
+          // 获取用户信息并添加到表单中
+          const userInfo = JSON.parse(sessionStorage.getItem('user')) || {};
+          this.passengerForm.username = userInfo.username;
+          
           // 根据isEdit判断是添加还是编辑
           const request = this.isEdit
             ? this.$axios.put('/user/passenger', this.passengerForm)
@@ -248,7 +289,7 @@ export default {
           request
             .then(response => {
               this.submitting = false;
-              if (response.data.code === 200) {
+              if (response.data.code === 1) {
                 this.$message.success(this.isEdit ? '编辑成功' : '添加成功');
                 this.dialogVisible = false;
                 this.getPassengers(); // 刷新列表
@@ -276,11 +317,15 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        this.$axios.delete('/user/passenger', {
-          params: { ids }
-        })
+        // 构建参数，将ids数组转换为多个ids参数
+        const params = new URLSearchParams();
+        ids.forEach(id => {
+          params.append('ids', id);
+        });
+        
+        this.$axios.delete(`/user/passenger?${params.toString()}`)
           .then(response => {
-            if (response.data.code === 200) {
+            if (response.data.code === 1) {
               this.$message.success('删除成功');
               this.getPassengers(); // 刷新列表
               // 清空选择

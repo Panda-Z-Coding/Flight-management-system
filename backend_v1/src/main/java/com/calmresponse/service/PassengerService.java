@@ -5,6 +5,7 @@ package com.calmresponse.service;
 import com.calmresponse.dto.PageQueryDTO;
 import com.calmresponse.dto.PassengerDTO;
 import com.calmresponse.dto.PassengerPageQueryDTO;
+import com.calmresponse.dto.UserPageQueryDTO;
 import com.calmresponse.entity.Passenger;
 import com.github.pagehelper.PageInfo;
 
@@ -20,5 +21,5 @@ public interface PassengerService {
     void updatePassenger(PassengerDTO passengerDTO);
 
     //分页查询乘客信息
-    PageInfo<Passenger> pageQuery(PageQueryDTO pageQueryDTO);
+    PageInfo<Passenger> pageQuery(UserPageQueryDTO userPageQueryDTO);
 }

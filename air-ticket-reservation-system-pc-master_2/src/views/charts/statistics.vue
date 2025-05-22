@@ -51,18 +51,12 @@
 <script type="text/ecmascript-6">
 import Chart from 'echarts'
 import SCEoption from "echarts/lib/lang";
+import { monthlyOrderData, monthlyRevenueData, monthlyClickData, attendanceData, seatRateData } from '@/data/chartData';
 
 export default {
   name: "welcome",
   data() {
     return {
-      revenueByMonth : [1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      monthlyOrderCount:[],
-      orderData: [],
-      monthlyRevenue :[],
-      machineNo: '',
-      seatRate:'',
-      type: 'day',
       //  销售总笔数
       SCEoption: {
         tooltip: {
@@ -126,12 +120,11 @@ export default {
             }
           }
         },
-
         series: [{
           name: '销售总笔数',
           type: 'bar',
           barGap: 0,
-          data: this.monthlyOrderCount,
+          data: monthlyOrderData,
           barWidth: 10,
           itemStyle: {
             normal: {
@@ -222,16 +215,14 @@ export default {
         },
         series: [{
           name: '销售总金额',
-          //   type: 'bar',
           type: 'line',
           barGap: 0,
-          data: [50000, 70000, 80000, 40000, 50000, 30000, 40000, 60000, 50000, 40000, 60000, 40000],
+          data: monthlyRevenueData,
           barWidth: 10,
           itemStyle: {
             color: "#108ff9"
           }
         }]
-
       },
       //  总点击量
       Clickoption: {
@@ -300,7 +291,7 @@ export default {
           name: '总点击量',
           type: 'bar',
           barGap: 0,
-          data: [50000, 10000, 80000, 30000, 50000, 60000, 40000, 80000, 50000, 20000, 60000, 40000],
+          data: monthlyClickData,
           barWidth: 10,
           itemStyle: {
             color: "#48cefd"
@@ -309,22 +300,20 @@ export default {
       },
       //  支付方式统计
       payoption: {
-        backgroundColor: '#2c343c',
+        backgroundColor: '#ffffff',
         title: {
           text: '登机人数统计',
           left: 10,
           top: 5,
           textStyle: {
             fontSize: 12,
-            color: '#ccc'
+            color: '#188df0'
           }
         },
-
         tooltip: {
           trigger: 'item',
           formatter: "{a} <br/>{b} : {c} ({d}%)"
         },
-
         visualMap: {
           show: false,
           min: 80,
@@ -339,27 +328,19 @@ export default {
             type: 'pie',
             radius: '55%',
             center: ['50%', '50%'],
-            data: [
-              {value: 335, name: '支付宝'},
-              {value: 310, name: '银商二维码'},
-              {value: 274, name: '会员'},
-              {value: 235, name: '微信支付'},
-              {value: 100, name: 'Pos通'}
-            ].sort(function (a, b) {
-              return a.value - b.value;
-            }),
+            data: attendanceData.sort((a, b) => a.value - b.value),
             roseType: 'radius',
             label: {
               normal: {
                 textStyle: {
-                  color: 'rgba(255, 255, 255, 0.3)'
+                  color: '#188df0'
                 }
               }
             },
             labelLine: {
               normal: {
                 lineStyle: {
-                  color: 'rgba(255, 255, 255, 0.3)'
+                  color: '#188df0'
                 },
                 smooth: 0.2,
                 length: 10,
@@ -368,12 +349,11 @@ export default {
             },
             itemStyle: {
               normal: {
-                color: '#c23531',
+                color: '#188df0',
                 shadowBlur: 200,
                 shadowColor: 'rgba(0, 0, 0, 0.5)'
               }
             },
-
             animationType: 'scale',
             animationEasing: 'elasticOut',
             animationDelay: function (idx) {
@@ -383,22 +363,20 @@ export default {
         ]
       },
       payNumoption: {
-        backgroundColor: '#2c343c',
+        backgroundColor: '#ffffff',
         title: {
           text: '上座率统计',
           left: 10,
           top: 5,
           textStyle: {
             fontSize: 12,
-            color: '#ccc'
+            color: '#188df0'
           }
         },
-
         tooltip: {
           trigger: 'item',
           formatter: "{a} <br/>{b} : {c} ({d}%)"
         },
-
         visualMap: {
           show: false,
           min: 80,
@@ -413,27 +391,19 @@ export default {
             type: 'pie',
             radius: '55%',
             center: ['50%', '50%'],
-            data: [
-              {value: 335, name: '支付宝'},
-              {value: 310, name: '银商二维码'},
-              {value: 274, name: '会员'},
-              {value: 235, name: '微信支付'},
-              {value: 100, name: 'Pos通'}
-            ].sort(function (a, b) {
-              return a.value - b.value;
-            }),
+            data: seatRateData.sort((a, b) => a.value - b.value),
             roseType: 'radius',
             label: {
               normal: {
                 textStyle: {
-                  color: 'rgba(255, 255, 255, 0.3)'
+                  color: '#188df0'
                 }
               }
             },
             labelLine: {
               normal: {
                 lineStyle: {
-                  color: 'rgba(255, 255, 255, 0.3)'
+                  color: '#188df0'
                 },
                 smooth: 0.2,
                 length: 10,
@@ -442,12 +412,11 @@ export default {
             },
             itemStyle: {
               normal: {
-                color: '#c23531',
+                color: '#188df0',
                 shadowBlur: 200,
                 shadowColor: 'rgba(0, 0, 0, 0.5)'
               }
             },
-
             animationType: 'scale',
             animationEasing: 'elasticOut',
             animationDelay: function (idx) {
@@ -455,28 +424,13 @@ export default {
             }
           }
         ]
-
-      },
+      }
     }
   },
-  // 导入组件
-  components: {
-    // 点聚合组件
-  },
-  // 创建完毕状态(里面是操作)
-  created() {
-    this.getAll()
-    this.seatRateNum()
-  },
-  // 挂载结束状态(里面是操作)
   mounted() {
-    // 先获取数据
-    this.getAll()
-    this.seatRateNum()
-    
     // 确保DOM已渲染，延迟初始化图表
     this.$nextTick(() => {
-      // 初始化图表（确保有默认数据显示）
+      // 初始化图表
       this.getSCE()
       this.getSUM()
       this.getClick()
@@ -484,84 +438,7 @@ export default {
       this.getpayNum()
     })
   },
-  // 里面的函数只有调用才会执行
   methods: {
-    updateRevenue() {
-      // 确保图表数据已经更新
-      this.getSCE()
-      this.getSUM()
-      console.log("更新月度订单数:", this.monthlyOrderCount);
-      console.log("更新月度销售额:", this.monthlyRevenue);
-    },
-    getAll() {
-      // 获取订单数据
-      this.$axios.get('/order/getAll')
-        .then(res => {
-          if (res.data.code === 200) {
-            this.orderData = res.data.data
-            
-            // 重置月度数据
-            this.monthlyRevenue = [0,0,0,0,0,0,0,0,0,0,0,0]
-            this.monthlyOrderCount = [0,0,0,0,0,0,0,0,0,0,0,0]
-            
-            // 处理订单数据
-            this.orderData.forEach(order => {
-              const orderDate = new Date(order.orderTime);
-              const month = orderDate.getMonth(); // 修正：月份已经是0-11之间，不需要加1
-              this.monthlyOrderCount[month] += 1
-              this.monthlyRevenue[month] += order.amount;
-            });
-            
-            // 更新图表配置数据
-            this.SCEoption.series[0].data = this.monthlyOrderCount
-            this.SUMoption.series[0].data = this.monthlyRevenue
-            
-            // 立即更新图表显示
-            this.getSCE()
-            this.getSUM()
-          } else {
-            this.$message.warning(res.data.message || '获取订单数据失败')
-          }
-        })
-        .catch(error => {
-          console.error('获取订单数据出错:', error)
-          this.$message.error('获取订单数据失败，请检查服务器连接')
-          // 使用默认数据或者清空数据
-          this.monthlyRevenue = [0,0,0,0,0,0,0,0,0,0,0,0]
-          this.monthlyOrderCount = [0,0,0,0,0,0,0,0,0,0,0,0]
-          // 更新图表显示
-          this.SCEoption.series[0].data = this.monthlyOrderCount
-          this.SUMoption.series[0].data = this.monthlyRevenue
-          this.getSCE()
-          this.getSUM()
-        })
-
-      // 获取支付方式数据（金额）
-      this.$axios.get('/order/attendance').then(res => {
-          if (res.data.code === 200) {
-            console.log("支付方式统计(金额)",res.data.data);
-            this.payoption.series[0].data=res.data.data
-            this.getpay()
-            // {value: 335, name: '支付宝'},
-            // {value: 310, name: '银商二维码'},
-            // {value: 274, name: '会员'},
-            // {value: 235, name: '微信支付'},
-            // {value: 100, name: 'Pos通'}
-
-          } else {
-            this.$message.warning(res.data.data)
-          }
-      })
-    },
-    //出票率
-    seatRateNum(){
-      this.$axios.get('/flight/seatRate').then(res => {
-        this.seatRate = res.data.data
-        console.log("支付方式统计(笔数)",this.seatRate);
-        this.payNumoption.series[0].data = this.seatRate
-        this.getpayNum()
-      })
-    },
     // 交易总笔数
     getSCE() {
       this.chart = Chart.init(this.$refs.SCEchart)
@@ -572,7 +449,6 @@ export default {
       this.chart = Chart.init(this.$refs.SUMEchart)
       this.chart.setOption(this.SUMoption)
     },
-
     // 总点击量
     getClick() {
       this.chart = Chart.init(this.$refs.ClickEchart)

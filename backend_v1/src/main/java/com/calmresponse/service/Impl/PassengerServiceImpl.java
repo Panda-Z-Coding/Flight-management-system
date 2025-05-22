@@ -1,10 +1,7 @@
 package com.calmresponse.service.Impl;
 
 
-import com.calmresponse.dto.FlightPageQueryDTO;
-import com.calmresponse.dto.PageQueryDTO;
-import com.calmresponse.dto.PassengerDTO;
-import com.calmresponse.dto.PassengerPageQueryDTO;
+import com.calmresponse.dto.*;
 import com.calmresponse.entity.Flight;
 import com.calmresponse.entity.Passenger;
 import com.calmresponse.mapper.PassengerMapper;
@@ -46,11 +43,11 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     //根据用户名分页查询乘客
-    public PageInfo<Passenger> pageQuery(PageQueryDTO queryDTO) {
+    public PageInfo<Passenger> pageQuery(UserPageQueryDTO userPageQueryDTO) {
         // 开启分页
-        PageHelper.startPage(queryDTO.getPage(), queryDTO.getPageSize());
+        PageHelper.startPage(userPageQueryDTO.getPage(), userPageQueryDTO.getPageSize());
         // 调用 mapper 层方法进行查询
-        List<Passenger> passengers = passengerMapper.pageQuery(queryDTO);
+        List<Passenger> passengers = passengerMapper.pageQuery(userPageQueryDTO);
         return new PageInfo<>(passengers);
     }
 

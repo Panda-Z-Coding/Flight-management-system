@@ -2,6 +2,7 @@ package com.calmresponse.mapper;
 
 import com.calmresponse.dto.PageQueryDTO;
 import com.calmresponse.dto.PassengerPageQueryDTO;
+import com.calmresponse.dto.UserPageQueryDTO;
 import com.calmresponse.entity.Passenger;
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Mapper;
@@ -22,5 +23,5 @@ public interface PassengerMapper {
 
     void update(Passenger passenger);
 
-    List<Passenger> pageQuery(PageQueryDTO queryDTO);
+    List<Passenger> pageQuery(UserPageQueryDTO userPageQueryDTO);
 }

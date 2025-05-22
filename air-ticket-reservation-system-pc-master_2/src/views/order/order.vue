@@ -107,8 +107,7 @@ export default {
           params.pageSize = 1
         }
 
-        const response = await this.$axios.get('/admin/order/page', {
-          params,
+        const response = await this.$axios.post('/admin/order/page', params,{
           headers: {
             'Authorization': sessionStorage.getItem('token') ? `Bearer ${sessionStorage.getItem('token')}` : '',
             'Content-Type': 'application/json',
@@ -117,7 +116,7 @@ export default {
         })
 
         if (response.data.code === 1) {
-          this.orderList = response.data.data.records
+          this.orderList = response.data.data.list
           this.total = response.data.data.total
           
           // 如果是按订单号查询
