@@ -17,18 +17,20 @@ export const monthlyClickData = [
 
 // 登机人数统计数据
 export const attendanceData = [
-  { value: 335, name: '支付宝' },
-  { value: 310, name: '银商二维码' },
-  { value: 274, name: '会员' },
-  { value: 235, name: '微信支付' },
-  { value: 100, name: 'Pos通' }
+  { value: 335, name: '中国国际航空' },
+  { value: 310, name: '中国东方航空' },
+  { value: 274, name: '中国南方航空' },
+  { value: 235, name: '厦门航空' },
+  { value: 100, name: '春秋航空' },
+  { value: 50, name: '海南航空' }
 ]
 
 // 上座率统计数据
 export const seatRateData = [
-  { value: 320, name: '支付宝' },
-  { value: 290, name: '银商二维码' },
-  { value: 260, name: '会员' },
-  { value: 220, name: '微信支付' },
-  { value: 90, name: 'Pos通' }
+  { value: 320, name: '中国国际航空' },
+  { value: 290, name: '厦门航空' },
+  { value: 260, name: '春秋航空' },
+  { value: 220, name: '海南航空' },
+  { value: 90, name: '中国南方航空' },
+  { value: 76, name: '中国东方航空' }
 ]
