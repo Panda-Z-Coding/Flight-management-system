@@ -8,6 +8,7 @@ import com.calmresponse.exception.BusinessException;
 import com.calmresponse.result.Result;
 import com.calmresponse.service.OrderService;
 import com.calmresponse.vo.OrderSubmitVO;
+import com.calmresponse.vo.PendingVO;
 import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,8 +43,16 @@ public class UserOrderController {
     }
 
     @PostMapping("/submit")
-    public Result<OrderSubmitVO> submit(@RequestBody OrderDTO orderDTO){
+    public Result<OrderSubmitVO> submit(@RequestBody OrderDTO orderDTO,HttpServletRequest request){
+        // 从 session 中获取用户信息
+        Object userObj = request.getSession().getAttribute(UserConstant.USER_LOGIN_STATUS);
+        if (userObj == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN, "用户未登录");
+        }
         log.info("提交订单：{}",orderDTO);
+        UserDTO userDTO = (UserDTO) userObj;
+        String username = userDTO.getUsername();
+        orderDTO.setUsername(username);
         OrderSubmitVO orderSubmitVO=orderService.submit(orderDTO);
         return Result.success(orderSubmitVO);
     }
@@ -55,15 +64,16 @@ public class UserOrderController {
         return Result.success();
     }
 
-    @GetMapping("/pending")
-    public Result<Double> pending(@RequestBody PendingOrdersDTO pendingOrdersDTO){
-        log.info("改签or退款：{}",pendingOrdersDTO);
-        Double serviceFee=orderService.pending(pendingOrdersDTO);
-        return Result.success(serviceFee);
+    @PutMapping("/pending")
+    public Result<PendingVO> pending(@RequestBody PendingOrdersDTO pendingOrdersDTO){
+        log.info("退款：{}",pendingOrdersDTO);
+        PendingVO pendingVO=orderService.pending(pendingOrdersDTO);
+        return Result.success(pendingVO);
     }
 
+    @PutMapping("/confirmed")
     public Result confirmed(@RequestBody ConfirmedOrdersDTO confirmedOrdersDTO){
-        log.info("确认改签or退款：{}",confirmedOrdersDTO);
+        log.info("确认退款：{}",confirmedOrdersDTO);
         orderService.confirmed(confirmedOrdersDTO);
         return Result.success();
     }
