@@ -33,14 +33,11 @@
     <el-table size="small" @selection-change="selectChange" :data="userData" highlight-current-row v-loading="loading" border element-loading-text="拼命加载中" style="width: 100%;">
       <el-table-column align="center" type="selection" width="50">
       </el-table-column>
+      <el-table-column align="center" sortable prop="id" label="用户ID" width="120">
+      </el-table-column>
       <el-table-column align="center" sortable prop="username" label="用户名" width="120">
       </el-table-column>
       <el-table-column align="center" sortable prop="balance" label="余额" width="150">
-      </el-table-column>
-      <el-table-column align="center" sortable prop="permission" label="权限" width="100">
-        <template slot-scope="scope">
-          {{ scope.row.permission === 0 ? '用户' : '管理员' }}
-        </template>
       </el-table-column>
       <el-table-column align="center" sortable prop="createTime" label="创建时间" width="180">
       </el-table-column>
@@ -48,11 +45,10 @@
       </el-table-column>
       <el-table-column align="center" sortable prop="status" label="状态" min-width="100">
         <template slot-scope="scope">
-          <el-switch v-model="scope.row.status" :active-value="0" :inactive-value="1" active-color="#13ce66" inactive-color="#ff4949" @change="editStatus(scope.row)">
-          </el-switch>
+          <el-tag :type="scope.row.status === 0 ? 'success' : 'danger'">{{ scope.row.status === 0 ? '正常' : '封号' }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" min-width="300">
+      <el-table-column align="center"label="操作" min-width="100">
         <template slot-scope="scope">
           <el-button size="mini" @click="handleEdit(scope.row)">编辑</el-button>
         </template>
@@ -63,15 +59,6 @@
       <el-form label-width="80px" ref="editUserForm" :model="editUserForm" :rules="rules">
         <el-form-item label="用户名" prop="username">
           <el-input size="small" v-model="editUserForm.username" auto-complete="off" placeholder="请输入用户名"></el-input>
-        </el-form-item>
-        <el-form-item label="余额" prop="balance">
-          <el-input-number size="small" v-model="editUserForm.balance" :precision="2" :step="100" :min="0" auto-complete="off" placeholder="请输入余额"></el-input-number>
-        </el-form-item>
-        <el-form-item label="权限" prop="permission">
-          <el-select size="small" v-model="editUserForm.permission" placeholder="请选择权限" class="userRole">
-            <el-option label="用户" :value="0"></el-option>
-            <el-option label="管理员" :value="1"></el-option>
-          </el-select>
         </el-form-item>
         <el-form-item label="用户状态" prop="status">
           <el-select size="small" v-model="editUserForm.status" placeholder="请选择" class="userRole">
@@ -128,9 +115,6 @@ export default {
         balance: [
           {required: true, message: '余额不能为空', trigger: 'blur'}
         ],
-        permission: [
-          {required: true, message: '请选择权限', trigger: 'blur'}
-        ],
         status: [
           {required: true, message: '请选择账号状态', trigger: 'blur'}
         ]
@@ -139,7 +123,6 @@ export default {
         id:'',
         username:'',
         balance: 0,
-        permission: 0,
         status: 0
       },
       formInline: {
@@ -176,172 +159,120 @@ export default {
 
       return csvRows.join('\n');
     },
-    selectChange(val) {
-      this.ids = []
-      val.forEach((item, index) => {
-        this.ids.push(item.id)
-      })
-      if (this.ids.length > 0) {
-        this.showDeleteButton = true
-      } else {
-        this.showDeleteButton = false
-      }
-    },
-    deleteList(ids) {
-      this.$confirm('确定要删除吗?', '信息', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        const params = {
-          id: ids.join(',')
-        };
-        this.$axios.delete("/admin/user", {params}).then(res => {
-          if (res.data.code === 200) {
-            this.pageNum = 1
-            this.pageSize = 10
-            this.queryAll()
-            this.$message.success("删除成功")
-          } else {
-            this.$message.error(res.data.data)
-          }
-        })
-      })
-        .catch(() => {
-          this.$message({
-            type: 'info',
-            message: '已取消删除！'
-          })
-        })
-    },
-    closeDeleteButton() {
-      this.ids = []
-      this.showDeleteButton = false
-      this.queryAll()
-
-    },
-    submitForm(formName) {
-      this.$axios.put("/user/updateUser", this.editUserForm).then(res => {
-        if (res.data.code === 200) {
-          this.editFormVisible = false
-          this.queryAll()
-          this.$message.success("修改成功")
-        } else {
-          this.$message.error(res.data.data)
-        }
-      })
-    },
+    
+    
     handleEdit(user) {
       this.editFormVisible = true
       this.editUserForm = {...user}
     },
-    deleteUser(id) {
-      this.$confirm('确定要删除吗?', '信息', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        // 删除
-        this.$axios.delete("/user/delete?id=" + id).then(res => {
-          if (res.data.code === 200) {
-            this.pageNum = 1
-            this.pageSize = 10
-            this.queryAll()
-            this.$message.success("删除成功")
-          } else {
-            this.$message.error(res.data.data)
-          }
-        })
-      })
-        .catch(() => {
-          this.$message({
-            type: 'info',
-            message: '已取消删除！'
-          })
-        })
-    },
-    resetpwd(id) {
-      this.$confirm('确定要重置吗?', '信息', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        this.$axios.put("/user/updatePassword?id=" + id).then(res => {
-          if (res.data.code === 200) {
-            this.queryAll()
-            this.$message.success("重置成功")
-          } else {
-            this.$message.error(res.data.data)
-          }
-        })
-      })
-        .catch(() => {
-          this.$message({
-            type: 'info',
-            message: '已取消重置！'
-          })
-        })
-    },
+    
+    
     closeDialog() {
       this.editFormVisible = false
     },
+
     editStatus(row) {
-      this.editForm.id = row.id
-      this.editForm.status = row.status
-      this.$axios.put('/user/updateUserStatus', this.editForm).then(res => {
-        if (res.data.code === 200) {
-          this.$message.success("修改成功")
-          this.queryAll()
+      // 检查当前用户是否为管理员
+      const role = sessionStorage.getItem('role');
+      if (role !== '1') {
+        this.$message.error('只有管理员才能修改用户状态');
+        // 恢复原状态值
+        this.$nextTick(() => {
+          row.status = row.status === 0 ? 1 : 0;
+        });
+        return;
+      }
+      
+      // 获取要设置的状态值（注意：接口中0表示正常，1表示封号）
+      const statusToSet = row.status === 0 ? 1 : 0;
+      
+      // 调用新接口 - 修改为符合后端要求的格式
+      this.$axios.post(`/admin/user/status/${statusToSet}`, {
+        id: row.id
+      }).then(res => {
+        if (res.data.code === 1) {
+          this.$message.success(statusToSet === 1 ? "用户已封号" : "用户已启用");
+          this.queryAll();
         } else {
-          this.$message.error(res.data.data)
+          // 操作失败，恢复原状态值
+          row.status = row.status === 0 ? 1 : 0;
+          this.$message.error(res.data.message || '操作失败');
         }
-      })
+      }).catch(error => {
+        // 发生错误，恢复原状态值
+        row.status = row.status === 0 ? 1 : 0;
+        console.error('修改用户状态失败:', error);
+        this.$message.error('修改用户状态失败，请稍后重试');
+      });
     },
-    handleSizeChange(val) {
-      this.pageSize = val
-      this.queryAll();
+    
+    // 添加submitForm方法处理编辑页面保存按钮点击事件
+    submitForm(formName) {
+      this.$refs[formName].validate(valid => {
+        if (valid) {
+          this.loading = true;
+          this.$axios.put("/admin/user/status", this.editUserForm).then(res => {
+            if (res.data.code === 200 || res.data.code === 1) {
+              this.editFormVisible = false;
+              this.queryAll();
+              this.$message.success("修改成功");
+            } else {
+              this.$message.error(res.data.message || res.data.data || "修改失败");
+            }
+          }).catch(error => {
+            console.error('修改用户信息失败:', error);
+            this.$message.error('修改用户信息失败，请稍后重试');
+          }).finally(() => {
+            this.loading = false;
+          });
+        } else {
+          this.$message.warning("请填写完整有效的表单信息");
+          return false;
+        }
+      });
     },
-    handleCurrentChange(val) {
-      this.pageNum = val
-      this.queryAll()
-    },
+    
     queryByName() {
       this.pageNum = 1
       this.queryAll()
     },
-    queryAll() {
-      this.$axios.post('/admin/user/page', {
-        params: {
+    async queryAll() {
+      this.loading = true
+      
+      try{
+        const params = {
           page: this.pageNum,
           pageSize: this.pageSize,
           username: this.formInline.username || undefined
         }
-      }).then(res => {
-        if (res.data.code === 1) {
-          this.userData = res.data.data.list
-          this.total = res.data.data.total || (res.data.data ? 1 : 0)
-          
-          // 如果返回的是单个对象而不是数组，转换为数组
-          if (!Array.isArray(this.userData)) {
-            this.userData = [this.userData]
-          }
-          
-          // 处理日期格式
-          this.userData.forEach(user => {
-            if (user.createTime) {
-              user.createTime = this.formatDateTime(user.createTime)
-            }
-            if (user.updateTime) {
-              user.updateTime = this.formatDateTime(user.updateTime)
-            }
-          })
+
+        const response = await this.$axios.post('/admin/user/page', params);
+
+        if(response.data.code === 1){
+          this.userData = response.data.data.list;
+          this.total = response.data.data.total;
         } else {
-          this.$message.error(res.data.message || '获取用户列表失败')
+          this.$message.warning(response.data.message || '获取用户列表失败');
         }
-      }).catch(error => {
-        console.error('获取用户列表失败:', error)
-        this.$message.error('获取用户列表失败，请稍后重试')
-      })
+      }catch(error){
+        console.error('获取乘客列表错误:', error);
+        this.$message.error('获取乘客列表失败，请稍后重试');
+      }finally {
+        this.loading = false;
+      };
+      
+    },
+
+     // 处理页码变化
+     handleCurrentChange(val) {
+      this.pageNum = val;
+      this.queryAll();
+    },
+    
+    // 处理每页条数变化
+    handleSizeChange(val) {
+      this.pageSize = val;
+      this.queryAll();
     },
     // 格式化日期时间
     formatDateTime(dateTimeStr) {
