@@ -239,8 +239,8 @@ export default {
       this.$router.push({
         path: '/user/flights',
         query: {
-          departureCity: this.searchForm.departureCity,
-          destinationCity: this.searchForm.destinationCity,
+          departureCity: this.getCityNameById(this.searchForm.departureCity),
+          destinationCity: this.getCityNameById(this.searchForm.destinationCity),
           departureDate: this.formatDate(this.searchForm.departureDate)
         }
       });
@@ -251,6 +251,13 @@ export default {
       const month = (date.getMonth() + 1).toString().padStart(2, '0');
       const day = date.getDate().toString().padStart(2, '0');
       return `${year}-${month}-${day}`;
+    },
+    
+    // 根据城市ID获取城市名称
+    getCityNameById(cityId) {
+      if (!cityId) return '';
+      const city = this.cities.find(city => city.value === cityId);
+      return city ? city.label : '';
     }
   }
 };

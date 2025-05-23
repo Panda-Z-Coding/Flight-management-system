@@ -522,6 +522,22 @@ export default {
   },
   
   mounted() {
+    // 从路由参数中获取查询条件
+    const { departureCity, destinationCity, departureDate } = this.$route.query;
+    
+    // 如果有查询参数，则设置到搜索表单中
+    if (departureCity) {
+      this.searchForm.departureCity = departureCity;
+    }
+    
+    if (destinationCity) {
+      this.searchForm.arrivalCity = destinationCity;
+    }
+    
+    if (departureDate) {
+      this.searchForm.date = departureDate;
+    }
+    
     // 页面加载时自动查询航班
     this.searchFlights();
   }
