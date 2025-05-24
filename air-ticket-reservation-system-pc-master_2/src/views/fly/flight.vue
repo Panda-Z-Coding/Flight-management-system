@@ -92,20 +92,10 @@
       </el-table-column>
       <el-table-column align="center"  prop="airline" label="航空公司" width="150">
       </el-table-column>
-      <el-table-column
-        label="航班状态" align="center" sortable prop="status">
-        <template slot-scope="scope">
-          <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'"
-                  >
-            {{ scope.row.status === 1 ? '已起飞' : '未出发' }}
-          </el-tag>
-        </template>
-      </el-table-column>
       <el-table-column align="center" sortable prop="createTime" label="创建时间" width="150">
       </el-table-column>
       <el-table-column align="center" sortable prop="updateTime" label="修改时间" width="150">
       </el-table-column>
-
       <el-table-column label="操作" min-width="180" align="center">
         <template slot-scope="scope">
           <el-button size="mini" type="primary" icon="el-icon-edit" v-show="userKind !== '-2'" @click="handleEdit(scope.row)">编辑</el-button>
@@ -174,12 +164,6 @@
             :picker-options="departureDateOptions"
             placeholder="选择日期">
           </el-date-picker>
-        </el-form-item>
-        <el-form-item label="航班状态" prop="status">
-          <el-select size="small" v-model="editFlightForm.status" placeholder="请选择" class="userRole">
-            <el-option label="已起飞" :value="1"></el-option>
-            <el-option label="未出发" :value="0"></el-option>
-          </el-select>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">

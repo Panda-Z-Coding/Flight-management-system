@@ -34,6 +34,7 @@ public class FlightServiceImpl implements FlightService {
         flight.setUpdateTime(LocalDateTime.now());
         //默认情况
         flight.setIsDelete(1);
+        flight.setStatus(0);
         flight.setRemainingSeats(flightDTO.getTotalSeats());
         //mapper中insert
         boolean insert=flightMapper.insert(flight);
