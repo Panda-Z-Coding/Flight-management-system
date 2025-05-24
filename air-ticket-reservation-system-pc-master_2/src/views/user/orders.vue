@@ -15,12 +15,6 @@
       :data="orderList"
       border
       style="width: 100%">
-      <el-table-column 
-        align="center" 
-        sortable prop="orderId" 
-        label="订单ID" 
-        width="120">
-      </el-table-column>
       <el-table-column
         prop="orderNumber"
         label="订单号"
