@@ -12,6 +12,7 @@ spring:
       username: root
       password: 1234
 
+
 mybatis:
   #mapper配置文件
   mapper-locations: classpath:mapper/*.xml
