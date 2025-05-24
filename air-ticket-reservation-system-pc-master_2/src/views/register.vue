@@ -62,13 +62,13 @@ export default {
       this.$refs[formName].validate((valid) => {
         if (valid) {
           this.loading = true;
-          this.$axios.post('/api/user/register', {
+          this.$axios.post('/user/register', {
             username: this.registerForm.username,
             userPassword: this.registerForm.userPassword,
             checkPassword: this.registerForm.checkPassword
           }).then(response => {
             this.loading = false;
-            if (response.data.code === 200 || response.data.code === 201) {
+            if (response.data.code === 0 || response.data.code === 201) {
               this.$message.success('注册成功，请登录');
               this.$router.push('/login');
             } else {

@@ -1,19 +1,20 @@
 package com.calmresponse.service.Impl;
 
-import com.github.pagehelper.Page;
+import com.calmresponse.mapper.UserMapper;
+import com.calmresponse.vo.PendingVO;
 import com.github.pagehelper.PageHelper;
 import com.calmresponse.dto.*;
 import com.calmresponse.entity.Flight;
 import com.calmresponse.entity.Orders;
 import com.calmresponse.mapper.FlightMapper;
 import com.calmresponse.mapper.OrdersMapper;
-import com.calmresponse.result.PageResult;
 import com.calmresponse.service.OrderService;
 import com.calmresponse.vo.OrderSubmitVO;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -26,6 +27,8 @@ public class OrderServicelmpl implements OrderService{
     private OrdersMapper orderMapper;
     @Autowired
     private FlightMapper flightMapper;
+    @Autowired
+    private UserMapper userMapper;
     //添加订单
     public void createOrder(OrderDTO orderDTO) {
         //创建订单，拷贝
@@ -99,11 +102,21 @@ public class OrderServicelmpl implements OrderService{
     }
 
     //支付订单
+    @Transactional
+    //涉及user表余额修改和orders表订单状态修改，开启事务注解
     public void payment(OrdersPaymentDTO ordersPaymentDTO) {
         //根据订单号查询订单
         Orders order = orderMapper.getByOrderNumber(ordersPaymentDTO.getOrderNumber());
         //如果订单存在
         if (order != null) {
+            //修改用户余额
+            String username = order.getUsername();
+            //判断用户余额是否充足
+            Double balance = userMapper.getBalance(username);
+            if(balance<order.getPrice()){
+                throw new RuntimeException("余额不足");
+            }
+            userMapper.updateBalance(balance-order.getPrice(), username);
             //修改订单状态为已支付
             order.setStatus(1);
             //修改支付时间
@@ -114,8 +127,8 @@ public class OrderServicelmpl implements OrderService{
         }
     }
 
-    //改签or退款
-    public Double pending(PendingOrdersDTO pendingOrdersDTO) {
+    //退款
+    public PendingVO pending(PendingOrdersDTO pendingOrdersDTO) {
         //根据id查询订单
         Orders order = orderMapper.getById(pendingOrdersDTO.getOrderId());
         Double serviceFee = order.getServiceFee();
@@ -123,67 +136,52 @@ public class OrderServicelmpl implements OrderService{
         if (order!= null) {
             //修改orderUpdateTime
             order.setUpdateTime(LocalDateTime.now());
-            if(pendingOrdersDTO.getOrderType().equals("退款")){//退款
-                //修改订单状态为已退款
-                //order.setStatus(2);还无法退款，得等确认退款
+            //order.setStatus(2);还无法退款，得等确认退款
                 /*全额退款or部分退款（手续费）
                 航班起飞时间-修改订单时间
                 起飞前7天外手续费20%(头等舱前7天免收费)，2-7天40%,4h-48h 60%*/
-                String flightNumber = order.getFlightNumber();
-                Flight flight =flightMapper.getByFlightNumber(flightNumber);
-                LocalDateTime departureTime = flight.getDepartureTime();
-                LocalDateTime updateTime = order.getUpdateTime();
-                long hours = Duration.between(departureTime, updateTime).toHours();
-                if(hours>7*24){
-                    serviceFee=order.getPrice()*0.2;
-                }else if(hours>48 && hours<=7*24){
-                    serviceFee=order.getPrice()*0.4;
-                }else if(hours>4 && hours<=48){
-                    serviceFee=order.getPrice()*0.6;
-                }else {
-                    serviceFee=order.getPrice();
-                }
-            }else {//改签
-                //改航班，改座位号
-                Flight newFlight = flightMapper.getById(pendingOrdersDTO.getFlightId());
-                order.setFlightNumber(newFlight.getFlightNumber());
-                order.setSeatNumber(pendingOrdersDTO.getSeatNumber());
-                /*手续费
-                原航班起飞时间-修改订单时间
-                起飞前7天外10%（头等舱不收费），2-7天30%,4h-48h 50%，4h内60%
-                * */
-                String oldFlightNumber = order.getFlightNumber();
-                Flight oldFlight =flightMapper.getByFlightNumber(oldFlightNumber);
-                LocalDateTime departureTime = oldFlight.getDepartureTime();
-                LocalDateTime updateTime = order.getUpdateTime();
-
-                long hours = Duration.between(updateTime,departureTime).toHours();
-                if(hours>7*24){
-                    serviceFee=order.getPrice()*0.1;
-                }else if(hours>48 && hours<=7*24){
-                    serviceFee=order.getPrice()*0.3;
-                }else if(hours>4 && hours<=48){
-                    serviceFee=order.getPrice()*0.5;
-                }else {
-                    serviceFee=order.getPrice();
-                }
+            String flightNumber = order.getFlightNumber();
+            Flight flight =flightMapper.getByFlightNumber(flightNumber);
+            LocalDateTime departureTime = flight.getDepartureTime();
+            LocalDateTime updateTime = order.getUpdateTime();
+            long hours = Duration.between(updateTime,departureTime).toHours();
+            //long hours = Duration.between(departureTime,updateTime).toHours();
+            if(hours>7*24){
+                serviceFee=order.getPrice()*0.2;
+            }else if(hours>48 && hours<=7*24){
+                serviceFee=order.getPrice()*0.4;
+            }else if(hours>4 && hours<=48){
+                serviceFee=order.getPrice()*0.6;
+            }else {
+                //该航班已启程，退款失败
+                throw new RuntimeException("该航班已启程，退款失败");
             }
-            orderMapper.update(order);
+            order.setServiceFee(serviceFee);
         }
-        return serviceFee;
+        PendingVO pendingVO = new PendingVO();
+        BeanUtils.copyProperties(order, pendingVO);
+        return pendingVO;
     }
 
-    //确认改签or退款
+    //确认退款
+    @Transactional
     public void confirmed(ConfirmedOrdersDTO confirmedOrdersDTO) {
         Orders order = orderMapper.getByOrderNumber(confirmedOrdersDTO.getOrderNumber());
         //如果订单存在
         if (order!= null) {
-            if(confirmedOrdersDTO.getOrderType().equals("退款")){//退款
-                //已经退款过的订单就没有退款这一说了，抛异常
-                //否则，修改订单状态为已退款，修改手续费
-            }else {//改签
-                //已经改签过的订单无法改签，抛异常
-                //否则，修改订单状态为已改签，修改手续费，修改航班，修改座位号
+            //已经退款过的订单就没有退款这一说了，抛异常
+            //否则，修改订单状态为已退款，修改手续费
+            if (order.getStatus()==2) {
+                throw new RuntimeException("该订单已经退款过了");
+            }else {
+                order.setStatus(2);
+                order.setServiceFee(confirmedOrdersDTO.getServiceFee());
+                order.setUpdateTime(LocalDateTime.now());
+                orderMapper.update(order);
+                //修改用户余额
+                String username = order.getUsername();
+                Double balance = userMapper.getBalance(username);
+                userMapper.updateBalance(balance+order.getPrice()-order.getServiceFee(), username);
             }
         }
     }

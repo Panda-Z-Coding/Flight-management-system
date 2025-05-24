@@ -92,20 +92,10 @@
       </el-table-column>
       <el-table-column align="center"  prop="airline" label="航空公司" width="150">
       </el-table-column>
-      <el-table-column
-        label="航班状态" align="center" sortable prop="status">
-        <template slot-scope="scope">
-          <el-tag :type="scope.row.status === 1 ? 'success' : scope.row.status === 0 ? 'danger' : 'worry' "
-                  >
-            {{ scope.row.status === 1 ? '正在飞行' : scope.row.status === 0 ? '未出发' : '推迟' }}
-          </el-tag>
-        </template>
-      </el-table-column>
       <el-table-column align="center" sortable prop="createTime" label="创建时间" width="150">
       </el-table-column>
       <el-table-column align="center" sortable prop="updateTime" label="修改时间" width="150">
       </el-table-column>
-
       <el-table-column label="操作" min-width="180" align="center">
         <template slot-scope="scope">
           <el-button size="mini" type="primary" icon="el-icon-edit" v-show="userKind !== '-2'" @click="handleEdit(scope.row)">编辑</el-button>
@@ -174,12 +164,6 @@
             :picker-options="departureDateOptions"
             placeholder="选择日期">
           </el-date-picker>
-        </el-form-item>
-        <el-form-item label="航班状态" prop="status">
-          <el-select size="small" v-model="editFlightForm.status" placeholder="请选择" class="userRole">
-            <el-option label="已起飞" :value="1"></el-option>
-            <el-option label="未出发" :value="0"></el-option>
-          </el-select>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -354,7 +338,7 @@ export default {
         remainingSeats: [
           {required: true, message: '请输入剩余座位数', trigger: 'blur'},
           { type: 'number', min: 0, message: '座位数不能小于0', trigger: 'blur' },
-          { validator: this.validateRemainingSeats, trigger: 'blur' }
+          
         ],
         price: [
           {required: true, message: '请输入票价', trigger: 'blur'},
@@ -457,14 +441,20 @@ export default {
     submitForm(formName) {
       this.$refs[formName].validate((valid) => {
         if (valid) {
-          // 设置加载状态
           this.loading = true;
           
           // 确保 remainingSeats 是数字类型
           const flightData = { ...this.editFlightForm };
           
+          // 格式化时间字段
+          if (flightData.departureTime) {
+            flightData.departureTime = this.formatDateTime(flightData.departureTime);
+          }
+          if (flightData.arrivalTime) {
+            flightData.arrivalTime = this.formatDateTime(flightData.arrivalTime);
+          }
           // 确保数值字段是数字类型
-          if (flightData.remainingSeats!== undefined) {
+          if (flightData.remainingSeats !== undefined && flightData.remainingSeats !== null && flightData.remainingSeats !== '') {
             flightData.remainingSeats = parseInt(flightData.remainingSeats, 10);
           }
           if (flightData.totalSeats !== undefined) {
@@ -472,6 +462,13 @@ export default {
           }
           if (flightData.price !== undefined) {
             flightData.price = Number(flightData.price);
+          }
+          
+          // 数据验证
+          if (flightData.remainingSeats > flightData.totalSeats) {
+            this.loading = false;
+            this.$message.error('剩余座位数不能大于总座位数');
+            return;
           }
           
           // 保存修改后的航班信息
@@ -555,14 +552,20 @@ export default {
     submitAddForm(formName) {
       this.$refs[formName].validate((valid) => {
         if (valid) {
-          // 设置加载状态
           this.loading = true;
           
           // 创建一个新对象，避免直接修改表单数据
           const flightData = { ...this.editAddFlightForm };
-          
+
+          // 格式化时间字段
+          if (flightData.departureTime) {
+            flightData.departureTime = this.formatDateTime(flightData.departureTime);
+          }
+          if (flightData.arrivalTime) {
+            flightData.arrivalTime = this.formatDateTime(flightData.arrivalTime);
+          }
           // 确保数值字段是数字类型
-          if (flightData.remainingSeats!== undefined) {
+          if (flightData.remainingSeats !== undefined && flightData.remainingSeats !== null && flightData.remainingSeats !== '') {
             flightData.remainingSeats = parseInt(flightData.remainingSeats, 10);
           }
           if (flightData.totalSeats !== undefined) {
@@ -572,33 +575,35 @@ export default {
             flightData.price = Number(flightData.price);
           }
           
-          // 如果剩余座位数未设置，则默认等于总座位数
-          if (!flightData.remainingSeats && flightData.totalSeats) {
-            flightData.remainingSeats = flightData.totalSeats.toString();
+          // 如果剩余座位数未设置，则默认等于总座位数（保持数字类型）
+          if ((!flightData.remainingSeats || flightData.remainingSeats === 0) && flightData.totalSeats) {
+            flightData.remainingSeats = flightData.totalSeats; // 修复：保持数字类型，不转换为字符串
           }
           
-          // 提交数据
-          this.$axios.put("/admin/flights", flightData, {
+          // 数据验证
+          if (flightData.remainingSeats > flightData.totalSeats) {
+            this.loading = false;
+            this.$message.error('剩余座位数不能大于总座位数');
+            return;
+          }
+          
+          // 提交数据到正确的接口
+          this.$axios.post("/admin/flights", flightData, {
             headers: {
               'Authorization': sessionStorage.getItem('token') ? `Bearer ${sessionStorage.getItem('token')}` : '',
               'Content-Type': 'application/json',
               'Accept': 'application/json'
-        }
-      }).then(res => {
-            // 无论成功失败都结束加载状态
+            }
+          }).then(res => {
             this.loading = false;
             
-            if (res.data.code === 1) {
-              // 关闭对话框
-              this.addFormVisible = false
-              // 刷新数据
-              this.queryAll()
-              // 刷新城市数据 
-              this.queryAllCity()
-              // 显示成功消息 
-              this.$message.success("新增成功")
+            if (res.data.code === 1) { // 修复：后端成功返回码应该是200
+              this.addFormVisible = false;
+              this.queryAll();
+              this.queryAllCity();
+              this.$message.success("新增成功");
             } else {
-              this.$message.error(res.data.data || "添加失败，请检查输入数据");
+              this.$message.error(res.data.message || "添加失败，请检查输入数据");
             }
           }).catch(err => {
             this.loading = false;
@@ -788,9 +793,9 @@ export default {
         departureTime: '',
         arrivalTime: '',
         status: 0,
-        totalSeats: 0,
-        remainingSeats: 0,
-        price: 0,
+        totalSeats: 0,    // 确保是数字类型
+        remainingSeats: 0, // 确保是数字类型
+        price: 0,         // 确保是数字类型
         airline: ''
       };
       // 如果表单已经挂载，则重置表单验证
@@ -808,9 +813,9 @@ export default {
         departureTime: '',
         arrivalTime: '',
         status: '',
-        totalSeats: 0,
-        remainingSeats: 0,
-        price: 0,
+        totalSeats: 0,    // 确保是数字类型
+        remainingSeats: 0, // 确保是数字类型
+        price: 0,         // 确保是数字类型
         airline: '',
         id: ''
       };
@@ -818,7 +823,24 @@ export default {
       if (this.$refs.editFlightForm) {
         this.$refs.editFlightForm.resetFields();
       }
-    }
+    },
+    // 格式化日期时间
+    formatDateTime(dateTimeStr) {
+      if (!dateTimeStr) return ''
+      
+      // 处理ISO格式的日期时间字符串
+      const date = new Date(dateTimeStr)
+      if (isNaN(date.getTime())) return dateTimeStr
+      
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      const hours = String(date.getHours()).padStart(2, '0')
+      const minutes = String(date.getMinutes()).padStart(2, '0')
+      const seconds = String(date.getSeconds()).padStart(2, '0')
+      
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+    },
   },
   /* vue的生命周期函数
      当页面加载完毕就会执行created里面的函数

@@ -1,0 +1,480 @@
+一、管理端接口
+1. 管理员登录
+方法：POST 
+路径：http://localhost:8080/user/login
+参数（JSON）：{
+    "username": "cloudnine",
+    "userPassword": "12345678"
+}
+响应示例：{
+    "code": 1,
+    "msg": null,
+    "data": {
+        "id": 10,
+        "username": "cloudnine",
+        "createTime": null,
+        "updateTime": null,
+        "status": 0,
+        "permission": 0
+    }
+}
+说明：管理员登录
+
+
+2. 航班管理
+2.1 添加航班
+方法：POST 
+路径：http://localhost:8080/admin/flights 
+参数（JSON）：
+{
+    "flightNumber":"CZ3456",
+    "aircraftModel":"初音未来hhh",
+    "seatLayout":"F43,Y34",
+    "departureCity":"重庆",
+    "arrivalCity":"山东",
+    "departureTime":"2023-12-01 08:00:00",
+    "arrivalTime":"2023-12-01 18:00:00",
+    "price":"4399",
+    "totalSeats":"349",
+    "airline":"因特"
+}
+响应示例：
+{
+    "code": 1,
+    "msg": null,
+    "data": null
+}
+说明：新增航班信息
+
+
+2.2 删除航班
+方法：DELETE 
+路径：localhost:8080/admin/flights?ids=58 
+参数（URL）：ids=1,2,3 
+响应示例：
+{
+    "code": 1,
+    "msg": null,
+    "data": null
+}
+说明：批量删除航班
+
+
+2.3 分页查询航班
+方法：POST 
+路径：http://localhost:8080/admin/flights/page 
+参数（JSON）：{
+    "page": 1,
+    "pageSize": 10,
+    "departureCity":"北京",
+    "arrivalCity": "广州"
+}
+响应示例：
+    "code": 1,
+    "msg": null,
+    "data": {
+        "total": 39,
+        "list": [
+            {
+                "id": 5,
+                "flightNumber": "MF4567",
+                "aircraftModel": "波音737",
+                "seatLayout": "F8,Y120",
+                "departureCity": "厦门",
+                "arrivalCity": "重庆",
+                "departureTime": "2023-12-01T14:30:00",
+                "arrivalTime": "2023-12-01T17:00:00",
+                "price": 1100.0,
+                "totalSeats": 128,
+                "remainingSeats": 120,
+                "createTime": "2025-05-12T14:18:22",
+                "updateTime": "2025-05-12T14:18:22",
+                "airline": "厦门航空",
+                "isDelete": 0,
+                "status": 0
+            },...
+            ]
+说明：管理端根据起飞、着陆城市，起飞、着陆时间分页查询所有航班信息
+
+
+2.4 修改航班
+方法：PUT 
+路径：http://localhost:8080/admin/flights 
+参数（JSON）：
+{
+    "id":"58",
+    "flightNumber":"CZ3456",
+    "aircraftModel":"波音777",
+    "seatLayout":"F43,Y34",
+    "departureCity":"重庆",
+    "arrivalCity":"山东",
+    "departureTime":"2023-12-01 08:00:00",
+    "arrivalTime":"2023-12-01 18:00:00",
+    "price":"4399",
+    "totalSeats":"349",
+    "remainingSeats":"43",
+    "airline":"东方航空"
+}
+响应示例：
+{
+    "code": 1,
+    "msg": null,
+    "data": null
+}
+说明：修改航班信息
+
+
+3. 订单管理
+3.1 分页查询订单
+方法：POST
+路径：/admin/orders/page 
+参数：page（第几页），pageSize（每页条数），orderNumber（订单号）
+响应示例：
+    "code": 1,
+    "msg": null,
+    "data": {
+        "total": 1,
+        "list": [
+            {
+                "id": 1,
+                "username": "traveler1",
+                "createTime": "2025-05-12T14:18:22",
+                "updateTime": "2025-05-20T14:43:02",
+                "price": 1200.0,
+                "flightNumber": "MF4567",
+                "paymentMethod": "支付宝",
+                "status": 1,
+                "serviceFee": 120.0,
+                "seatNumber": "F8,Y120",
+                "passengerName": "张伟",
+                "passengerIdCard": "110101199001011234",
+                "isDelete": 0,
+                "orderNumber": "111"
+            }
+        ]
+说明：管理员根据订单号分页查询所有订单
+
+
+4. 用户管理
+4.1 分页查询用户
+方法：POST
+路径：http://localhost:8080/admin/user/page
+参数（JSON）：page（第几页），pageSize（每页条数），username（用户名）} 
+响应示例：
+    "code": 1,
+    "msg": null,
+    "data": {
+        "total": 1,
+        "list": [
+            {
+                "id": 6,
+                "username": "traveler1",
+                "balance": 2500.0,
+                "createTime": "2025-05-12T14:18:22",
+                "updateTime": "2025-05-12T14:18:22",
+                "status": 0,
+                "permission": 0,
+                "isDelete": 0
+            }
+        ]
+说明：管理员根据用户名分页查询所有用户信息
+
+
+4.2 启用/禁用用户
+方法：POST 
+路径：localhost:8080/admin/user/status/1?id=51
+参数（URL）：id=51 
+响应示例：无
+说明：启用或禁用用户，status 为 1 启用，0 禁用
+
+
+
+二、用户端接口
+1. 登录注册
+1.1 用户注册
+方法：POST 
+路径：http://localhost:8080/user/register
+参数（JSON）：{
+    "username": "cloudeight",
+    "userPassword": "12345678",
+    "checkPassword": "12345678"
+}
+ 响应示例：{
+    "code": 0,
+    "data": 1924726486071107586,
+    "message": "ok",
+    "description": ""
+}
+说明：用户注册新账号
+
+
+1.2 用户登录
+方法：POST 
+路径：http://localhost:8080/user/login
+参数（JSON）：
+{
+    "username": "cloudnine",
+    "userPassword": "12345678"
+} 
+响应示例：
+{
+    "code": 1,
+    "msg": null,
+    "data": {
+        "id": 10,
+        "username": "cloudnine",
+        "createTime": null,
+        "updateTime": null,
+        "status": 0,
+        "permission": 0
+    }
+}
+说明：用户登录
+
+
+2. 航班管理
+2.1 分页查询航班
+方法：POST 
+路径：http://localhost:8080/user/flights/page 
+参数（JSON）：{
+    "departureCity": "北京",
+    "arrivalCity": "上海",
+    "departureTime": "2023-12-01 08:00:00",
+    "arrivalTime": "2023-12-01 10:00:00",
+    "page": 1,
+    "pageSize": 10
+}
+响应示例：
+    "code": 1,
+    "msg": null,
+    "data": {
+        "total": 8,
+        "list": [
+            {
+                "id": 5,
+                "flightNumber": "MF4567",
+                "aircraftModel": "波音737",
+                "seatLayout": "F8,Y120",
+                "departureCity": "厦门",
+                "arrivalCity": "重庆",
+                "departureTime": "2023-12-01T14:30:00",
+                "arrivalTime": "2023-12-01T17:00:00",
+                "price": 1100.0,
+                "totalSeats": 128,
+                "remainingSeats": 120,
+                "createTime": "2025-05-12T14:18:22",
+                "updateTime": "2025-05-12T14:18:22",
+                "airline": "厦门航空",
+                "isDelete": 0,
+                "status": 0
+            },
+            ...
+            ]
+说明：用户根据出发、目的城市，出发、目的时间分页查询所有航班信息
+
+
+3. 订单管理
+3.1、查询该用户所有订单
+方法：POST
+路径：localhost:8080/user/order/page
+参数（JSON）：
+{
+    "page":"1",
+    "pageSize":"10",
+    "passengerName": "李娜"
+}
+响应示例：
+    "code": 1,
+    "msg": null,
+    "data": {
+        "total": 1,
+        "list": [
+            {
+                "id": 3,
+                "username": "skyviewer",
+                "createTime": "2025-05-12T14:18:22",
+                "updateTime": "2025-05-12T14:18:22",
+                "price": 1800.0,
+                "flightNumber": "CZ3456",
+                "paymentMethod": "信用卡",
+                "status": 1,
+                "serviceFee": 0.0,
+                "seatNumber": "Y01",
+                "passengerName": "李娜",
+                "passengerIdCard": "110101199003031236",
+                "isDelete": 0,
+                "orderNumber": null
+            }
+        ]
+ 说明：用户根据乘车人(passengerName、passengerIdCard身份证)分页查询所有订单
+
+
+3.2.提交订单
+方法：POST
+路径：localhost:8080/user/order/submit
+参数（JSON）：
+{
+  "id":...
+  "username":"lovesong",
+  "price":"4399",
+  "flightNumber":"CA1934",
+  "seatNumber":"F01",
+  "passengerName":"liiwen",
+  "passengerIdCard":"110101199001011239"
+},HttpsRequest request
+响应示例：
+{
+​    "orderNumber": "17477261046864650",
+​    "price": 4399.0,
+​    "orderTime": "2025-05-20T15:28:24.8574278"
+  }
+说明：前端request存储了用户登录的信息，只有用户登录了才能提交订单
+
+
+
+3.3支付订单
+方法：PUT
+路径：localhost:8080/user/order/payment
+参数（JSON）：
+{
+  "orderNumber":"17474531275677896",
+  "paymentMethod":"微信支付"
+}
+响应示例：
+{
+  "code": 1,
+  "msg": **null**,
+  "data": **null**
+}
+说明：用户支付订单
+
+
+
+
+3.4准备退款
+方法：PUT
+路径：localhost:8080/user/order/pending
+参数（JSON）：
+{
+    "orderId":"64",
+    "flightId":"5",
+    "seatNumber":"F8,Y120"
+}
+响应示例：
+"data": {
+        "id": 64,
+        "updateTime": "2025-05-24T13:07:52.6548507",
+        "price": 1200.0,
+        "flightNumber": "MF4567",
+        "status": 2,
+        "serviceFee": 240.0,
+        "seatNumber": "F8,Y120",
+        "passengerName": "张伟",
+        "passengerIdCard": "110101199001011234",
+        "isDelete": 0,
+        "orderNumber": "17479884082377601"
+    }
+说明：预备退款动作，只是把退款的手续费和订单退款状态等信息传给前端。
+
+3.5确认退款
+方法：PUT
+路径：localhost:8080/user/order/confirmed
+参数（JSON）:
+{
+    "orderNumber":"17480631088853677",
+    "serviceFee":"240.0",
+    "updateTime":"2025-05-23T16:21:15.7975706"
+}
+响应示例：
+{
+    "code": 1,
+    "msg": null,
+    "data": null
+}
+说明：确认退款，在数据库修改订单的状态、手续费等信息，给用户余额退款
+
+
+
+4. 乘客管理
+4.1 新增乘客
+方法：POST
+路径：http://localhost:8080/user/passenger
+参数（JSON）：
+{
+    "name":"liuliu",
+    "idCard":"44444444444444444",
+    "status":0,
+    "phoneNumber":"13600000000"
+}
+响应示例：
+{
+    "code": 1,
+    "msg": null,
+    "data": null
+}
+ 说明：新增乘客信息
+
+
+4.2 删除乘客
+方法：DELETE 
+路径：http://localhost:8080/user/passenger?ids=67&ids=69
+参数（URL）【key value】：ids=67,ids=69
+响应示例：{
+    "code": 1,
+    "msg": null,
+    "data": null
+} 
+说明：批量删除乘客信息
+
+
+4.3 分页查询乘客
+方法：POST 
+路径：http://localhost:8080/user/passenger/page
+参数（JSON）：
+{
+    "page":"1",
+    "pageSize":"10",
+    "username":"真不懂了嗷"
+}
+响应示例：
+    "code": 1,
+    "msg": null,
+    "data": {
+        "total": 52,
+        "list": [
+            {
+                "id": 1,
+                "name": "张伟",
+                "idCard": "110101199001011234",
+                "status": 0,
+                "phoneNumber": "13800138001",
+                "createTime": "2025-05-12T14:18:22",
+                "updateTime": "2025-05-21T10:50:37",
+                "isDelete": 0,
+                "username": "真不懂了嗷"
+            },
+            ...
+            ]
+说明：分页查询该用户乘客信息
+  
+
+4.4 修改乘客
+方法：PUT
+路径：http://localhost:8080/user/passenger
+参数（JSON）：
+{
+    "id":65,
+    "name":"李四",
+    "idCard":"123456789012345678",
+    "phoneNumber":"13800138000"
+    } 
+响应示例：{
+    "code": 1,
+    "msg": null,
+    "data": null
+}
+说明：修改乘客信息
+
+注意事项：
+1.所有功能路径前面都要加https://localhost:8080 或者localhost:8080
+2.所有分页查询的请求参数中，page第几页和pageSize每页数量都是必要参数，其他参数测试时可以不带

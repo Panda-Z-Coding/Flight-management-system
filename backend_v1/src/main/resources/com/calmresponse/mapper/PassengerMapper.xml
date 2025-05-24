@@ -15,9 +15,6 @@
             <if test="idCard != null">
                 id_card = #{idCard},
             </if>
-            <if test="status != null">
-                status = #{status},
-            </if>
             <if test="phoneNumber!= null">
                 phone_number = #{phoneNumber},
             </if>

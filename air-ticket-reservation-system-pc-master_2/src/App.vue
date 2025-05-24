@@ -43,7 +43,7 @@ export default {
       }
     },
     updateCozeChatVisibility(currentPath) {
-      const isLoginPage = currentPath === '/login' || currentPath === '/';
+      const isLoginPage = currentPath === '/login' || currentPath === '/' || currentPath === '/register';
 
       if (isLoginPage) {
         if (this.cozeClient) {

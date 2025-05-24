@@ -44,15 +44,15 @@ const routes = [
           adminOnly: true
       }
       },
-      {
-      path: '/person/employee',
-      name: 'employee',
-        component: () => import('../views/person/employee.vue'),
-        meta: {
-          requireAuth: true,
-          adminOnly: true
-        }
-      },
+      // {
+      // path: '/person/employee',
+      // name: 'employee',
+      //   component: () => import('../views/person/employee.vue'),
+      //   meta: {
+      //     requireAuth: true,
+      //     adminOnly: true
+      //   }
+      // },
       {
       path: '/person/user',
       name: 'user',

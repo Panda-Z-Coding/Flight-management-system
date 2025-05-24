@@ -19,20 +19,19 @@
         <el-button size="small" type="primary" icon="el-icon-circle-plus" @click="exportData()">导出数据</el-button>
       </el-form-item>
     </el-form>
-    <el-form v-show="showDeleteButton" :inline="true" :model="formInline" class="user-search">
-      <el-form-item>
-        <el-button size="small" type="primary" icon="el-icon-close" @click="closeDeleteButton()">取消</el-button>
-      </el-form-item>
-      <el-form-item>
-        <el-button size="small" type="danger" icon="el-icon-delete" style="margin-left: 1000px"
-                   @click="deleteList(ids)">删除
-        </el-button>
-      </el-form-item>
-    </el-form>
+    <!-- 删除这个批量删除的表单区域 -->
+    <!-- <el-form v-show="showDeleteButton" :inline="true" :model="formInline" class="user-search"> -->
+    <!--   <el-form-item> -->
+    <!--     <el-button size="small" type="primary" icon="el-icon-close" @click="closeDeleteButton()">取消</el-button> -->
+    <!--   </el-form-item> -->
+    <!--   <el-form-item> -->
+    <!--     <el-button size="small" type="danger" icon="el-icon-delete" style="margin-left: 1000px" -->
+    <!--                @click="deleteList(ids)">删除 -->
+    <!--     </el-button> -->
+    <!--   </el-form-item> -->
+    <!-- </el-form> -->
     <!--列表-->
-    <el-table size="small" @selection-change="selectChange" :data="userData" highlight-current-row v-loading="loading" border element-loading-text="拼命加载中" style="width: 100%;">
-      <el-table-column align="center" type="selection" width="50">
-      </el-table-column>
+    <el-table size="small" :data="userData" highlight-current-row v-loading="loading" border element-loading-text="拼命加载中" style="width: 100%;">
       <el-table-column align="center" sortable prop="id" label="用户ID" width="120">
       </el-table-column>
       <el-table-column align="center" sortable prop="username" label="用户名" width="120">
@@ -211,8 +210,12 @@ export default {
       this.$refs[formName].validate(valid => {
         if (valid) {
           this.loading = true;
-          this.$axios.put("/admin/user/status", this.editUserForm).then(res => {
-            if (res.data.code === 200 || res.data.code === 1) {
+          // 修复：添加status路径参数，并将id作为请求参数传递
+          const status = this.editUserForm.status;
+          const params = { id: this.editUserForm.id };
+          
+          this.$axios.post(`/admin/user/status/${status}`, null, { params }).then(res => {
+            if (res.data.code === 1) {
               this.editFormVisible = false;
               this.queryAll();
               this.$message.success("修改成功");
@@ -220,8 +223,8 @@ export default {
               this.$message.error(res.data.message || res.data.data || "修改失败");
             }
           }).catch(error => {
-            console.error('修改用户信息失败:', error);
-            this.$message.error('修改用户信息失败，请稍后重试');
+            console.error('修改用户状态失败:', error);
+            this.$message.error('修改用户状态失败，请稍后重试');
           }).finally(() => {
             this.loading = false;
           });

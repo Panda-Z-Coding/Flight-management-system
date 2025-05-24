@@ -13,7 +13,7 @@ public class PassengerDTO {
     private Long id; // 主键ID
     private String name;// 乘客姓名
     private String idCard;// 身份证号
-    private Byte status;// 乘客状态
+    //private Byte status;// 乘客状态
     private String phoneNumber;// 手机号
     private String username;// 用户名
     //private LocalDateTime createTime; // 创建时间
