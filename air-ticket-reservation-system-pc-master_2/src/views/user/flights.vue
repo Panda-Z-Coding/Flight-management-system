@@ -433,19 +433,21 @@ export default {
             });
         }
       });
-    }
-  },
+    },
+
     // 处理分页大小变化
     handleSizeChange(val) {
-      this.pageSize = val;
+      this.searchForm.pageSize = val;
       this.searchFlights();
     },
     
     // 处理页码变化
     handleCurrentChange(val) {
-      this.page = val;
+      this.searchForm.page = val;
       this.searchFlights();
   },
+  },
+    
   
   mounted() {
     // 从路由参数中获取查询条件
