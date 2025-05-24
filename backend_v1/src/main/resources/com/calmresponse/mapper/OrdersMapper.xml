@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.calmresponse.mapper.OrdersMapper">
 
-    <insert id="insert">
+    <insert id="insert" >
         insert into orders
         (username, create_time, update_time, price,flight_number,
          payment_method, status, service_fee,seat_number, passenger_name,
@@ -11,6 +11,14 @@
                 #{flightNumber},#{paymentMethod},#{status},#{serviceFee},
                 #{seatNumber},#{passengerName},#{passengerIdCard},#{isDelete},#{orderNumber})
     </insert>
+<!--    <insert id="insert">-->
+<!--        insert into orders-->
+<!--        (username, create_time, update_time, price,flight_number,-->
+<!--         payment_method, status, service_fee, is_delete,order_number)-->
+<!--        values (#{username},#{createTime},#{updateTime},#{price},-->
+<!--                #{flightNumber},#{paymentMethod},#{status},#{serviceFee},-->
+<!--                #{isDelete},#{orderNumber})-->
+<!--    </insert>-->
     <update id="update">
         UPDATE orders
         <set>

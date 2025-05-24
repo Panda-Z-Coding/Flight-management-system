@@ -34,16 +34,6 @@
         width="150">
       </el-table-column>
       <el-table-column
-        prop="status"
-        label="状态"
-        width="100">
-        <template slot-scope="scope">
-          <el-tag :type="scope.row.status === 0 ? 'success' : 'info'">
-            {{ scope.row.status === 0 ? '正常' : '其他' }}
-          </el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column
         prop="createTime"
         label="创建时间"
         width="180">
@@ -92,12 +82,6 @@
         </el-form-item>
         <el-form-item label="电话号码" prop="phoneNumber">
           <el-input v-model="passengerForm.phoneNumber" placeholder="请输入电话号码"></el-input>
-        </el-form-item>
-        <el-form-item label="状态" prop="status">
-          <el-select v-model="passengerForm.status" placeholder="请选择状态">
-            <el-option :value="0" label="正常"></el-option>
-            <el-option :value="1" label="其他"></el-option>
-          </el-select>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -162,9 +146,6 @@ export default {
         phoneNumber: [
           { required: true, message: '请输入电话号码', trigger: 'blur' },
           { validator: validatePhone, trigger: 'blur' }
-        ],
-        status: [
-          { required: true, message: '请选择乘客类型', trigger: 'change' }
         ]
       }
     };

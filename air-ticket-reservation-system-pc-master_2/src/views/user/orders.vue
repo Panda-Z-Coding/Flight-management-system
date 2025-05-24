@@ -15,6 +15,12 @@
       :data="orderList"
       border
       style="width: 100%">
+      <el-table-column 
+        align="center" 
+        sortable prop="orderId" 
+        label="订单ID" 
+        width="120">
+      </el-table-column>
       <el-table-column
         prop="orderNumber"
         label="订单号"
@@ -100,11 +106,11 @@
             size="mini"
             type="success"
             @click="showPayDialog(scope.row)">支付</el-button>
-          <el-button
-            v-if="scope.row.status === 1"
-            size="mini"
-            type="danger"
-            @click="showRefundDialog(scope.row)">退票</el-button>
+            <el-button
+              v-if="scope.row.status === 1 && !isFlightDeparted(scope.row)"
+              size="mini"
+              type="danger"
+              @click="showRefundDialog(scope.row)">退票</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -196,14 +202,15 @@
     </el-dialog>
 
     <!-- 退票对话框 -->
-    <el-dialog title="申请退票" :visible.sync="refundDialogVisible" width="500px">
-      <div v-if="selectedOrder" class="refund-dialog">
+    <el-dialog title="申请退票" :visible.sync="refundDialogVisible" width="500px" :close-on-click-modal="false">
+      <div v-if="selectedOrder && refundInfo" class="refund-dialog">
         <div class="refund-info">
-          <p>订单号: {{ selectedOrder.orderNumber }}</p>
-          <p>航班: {{ selectedOrder.flightNumber }}</p>
-          <p>票价: {{ selectedOrder.price.toFixed(2) }} 元</p>
-          <p>手续费: {{ selectedOrder.serviceFee.toFixed(2) }} 元</p>
-          <p class="warning">注意: 退票可能会收取手续费，具体费用将根据距离起飞时间计算。</p>
+          <p>订单号: {{ refundInfo.orderNumber }}</p>
+          <p>航班: {{ refundInfo.flightNumber }}</p>
+          <p>票价: {{ refundInfo.price.toFixed(2) }} 元</p>
+          <p>手续费: {{ refundInfo.serviceFee.toFixed(2) }} 元</p>
+          <p class="refund-amount">退款金额: {{ (refundInfo.price - refundInfo.serviceFee).toFixed(2) }} 元</p>
+          <p class="warning">注意: 退票手续费根据距离起飞时间计算，请确认退款金额。</p>
         </div>
         <el-divider></el-divider>
         <el-form :model="refundForm" ref="refundForm" :rules="refundRules" label-width="100px">
@@ -212,9 +219,13 @@
           </el-form-item>
         </el-form>
       </div>
+      <div v-else-if="preparingRefund" class="loading-container">
+        <el-spinner></el-spinner>
+        <p>正在计算退款信息...</p>
+      </div>
       <div slot="footer" class="dialog-footer">
         <el-button @click="refundDialogVisible = false">取消</el-button>
-        <el-button type="danger" @click="refundOrder" :loading="submitting">确认退票</el-button>
+        <el-button type="danger" @click="refundOrder" :loading="submitting" :disabled="preparingRefund">确认退票</el-button>
       </div>
     </el-dialog>
   </div>
@@ -233,6 +244,8 @@ export default {
       refundDialogVisible: false,
       selectedOrder: null,
       submitting: false,
+      preparingRefund: false,
+      refundInfo: null,
       payForm: {
         paymentMethod: 'BALANCE'
       },
@@ -351,11 +364,107 @@ export default {
       this.payDialogVisible = true;
     },
     
+    // 检查航班是否已起飞
+    isFlightDeparted(order) {
+      // 这里需要根据您的实际数据结构来判断
+      // 假设有一个departureTime字段和当前时间比较
+      if (!order.departureTime) return false;
+      return new Date(order.departureTime) < new Date();
+    },
+
     // 显示退票对话框
-    showRefundDialog(order) {
-      this.selectedOrder = order;
-      this.refundForm.reason = '';
-      this.refundDialogVisible = true;
+    async showRefundDialog(order) {
+      
+      try {
+        // 先检查航班状态
+        if (this.isFlightDeparted(order)) {
+          this.$message.error('该航班已启程，无法退款');
+          return;
+        }
+        this.selectedOrder = order;
+        this.refundForm.reason = '';
+        
+        // 先调用准备退款接口获取退款信息
+        this.preparingRefund = true;
+        this.refundInfo = null; // 重置退款信息
+      
+        // 确保所有必要的参数都转换为字符串
+        const pendingData = {
+          orderId: String(order.id),
+          flightId: order.flightId !== undefined ? String(order.flightId) : null,
+          seatNumber: order.seatNumber
+        };
+        
+        // 添加请求头
+        const headers = {
+          'Content-Type': 'application/json'
+        };
+        
+        const response = await this.$axios.put('/user/order/pending', pendingData, { headers });
+        
+        // 检查响应状态
+        if (response.data.code === 1) {
+          this.refundInfo = response.data.data;
+          this.refundDialogVisible = true;
+        } else {
+          throw new Error(response.data.message || '准备退款失败');
+        }
+      } catch(error) {
+        console.error('准备退款失败:', error);
+        this.$message.error(error.message || '准备退款失败，请稍后重试');
+        this.refundDialogVisible = false; // 关闭对话框
+      } finally {
+        this.preparingRefund = false;
+      }
+    },
+    
+    // 退票
+    async refundOrder() {
+      if (!this.$refs.refundForm) {
+        this.$message.error('表单验证失败');
+        return;
+      }
+
+      try {
+        const valid = await this.$refs.refundForm.validate();
+        if (!valid) return;
+
+        // 检查必要数据
+        if (!this.selectedOrder || !this.refundInfo) {
+          this.$message.error('订单或退款信息不存在');
+          return;
+        }
+
+        this.submitting = true;
+
+        // 确保所有参数都是字符串类型
+        const confirmData = {
+          orderNumber: String(this.refundInfo.orderNumber),
+          serviceFee: String(this.refundInfo.serviceFee),
+          updateTime: this.refundInfo.updateTime
+        };
+
+        const headers = {
+          'Content-Type': 'application/json'
+        };
+
+        // 发送确认退票请求
+        const response = await this.$axios.put('/user/order/confirmed', confirmData, { headers });
+
+        if (response.data && response.data.code === 1) {
+          const refundAmount = this.refundInfo.price - this.refundInfo.serviceFee;
+          this.$message.success(`退票成功，退款金额: ${refundAmount.toFixed(2)} 元`);
+          this.refundDialogVisible = false;
+          await this.getOrders(); // 刷新列表
+        } else {
+          throw new Error(response.data.message || '退票失败');
+        }
+      } catch(error) {
+        console.error('退票失败:', error);
+        this.$message.error(error.message || '退票失败，请稍后重试');
+      } finally {
+        this.submitting = false;
+      }
     },
     
     // 支付订单
@@ -363,15 +472,22 @@ export default {
       this.$refs.payForm.validate(valid => {
         if (valid) {
           this.submitting = true;
-          this.$axios.post(`/user/orders/${this.selectedOrder.orderNumber}/pay`, this.payForm)
+          
+          // 构建符合新接口的请求参数
+          const paymentData = {
+            orderNumber: this.selectedOrder.orderNumber,
+            paymentMethod: this.payForm.paymentMethod
+          };
+          
+          this.$axios.put('/user/order/payment', paymentData)
             .then(response => {
               this.submitting = false;
-              if (response.data.code === 200) {
+              if (response.data.code === 1) {
                 this.$message.success('支付成功');
                 this.payDialogVisible = false;
                 this.getOrders(); // 刷新列表
               } else {
-                this.$message.error(response.data.message || '支付失败');
+                this.$message.error(response.data.msg || '支付失败');
               }
             })
             .catch(error => {
@@ -379,38 +495,9 @@ export default {
               if (error.response && error.response.status === 402) {
                 this.$message.error('余额不足，请选择其他支付方式或充值');
               } else if (error.response && error.response.data) {
-                this.$message.error(error.response.data.message || '支付失败');
+                this.$message.error(error.response.data.msg || '支付失败');
               } else {
                 this.$message.error('支付失败，请稍后重试');
-              }
-              console.error(error);
-            });
-        }
-      });
-    },
-    
-    // 退票
-    refundOrder() {
-      this.$refs.refundForm.validate(valid => {
-        if (valid) {
-          this.submitting = true;
-          this.$axios.delete(`/user/orders/${this.selectedOrder.orderNumber}`, { data: this.refundForm })
-            .then(response => {
-              this.submitting = false;
-              if (response.data.code === 200) {
-                this.$message.success(`退票成功，退款金额: ${response.data.data.refundAmount} 元`);
-                this.refundDialogVisible = false;
-                this.getOrders(); // 刷新列表
-              } else {
-                this.$message.error(response.data.message || '退票失败');
-              }
-            })
-            .catch(error => {
-              this.submitting = false;
-              if (error.response && error.response.data) {
-                this.$message.error(error.response.data.message || '退票失败');
-              } else {
-                this.$message.error('退票失败，请稍后重试');
               }
               console.error(error);
             });

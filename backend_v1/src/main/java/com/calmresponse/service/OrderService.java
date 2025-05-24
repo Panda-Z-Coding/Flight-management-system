@@ -6,6 +6,7 @@ import com.calmresponse.dto.*;
 import com.calmresponse.entity.Orders;
 import com.calmresponse.result.PageResult;
 import com.calmresponse.vo.OrderSubmitVO;
+import com.calmresponse.vo.PendingVO;
 import com.github.pagehelper.PageInfo;
 
 import java.util.List;
@@ -26,8 +27,8 @@ public interface OrderService {
     PageResult page(OrderPageQueryDTO orderPageQueryDTO);*/
 
     //改签or退款
-    Double pending(PendingOrdersDTO pendingOrdersDTO);
+    PendingVO pending(PendingOrdersDTO pendingOrdersDTO);
 
-    //确认改签or退款
+    //确认退款
     void confirmed(ConfirmedOrdersDTO confirmedOrdersDTO);
 }

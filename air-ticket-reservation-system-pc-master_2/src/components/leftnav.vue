@@ -31,7 +31,7 @@
             <span>用户管理</span>
           </template>
           <el-menu-item index="/person/user">普通用户</el-menu-item>
-          <el-menu-item index="/person/employee">员工管理</el-menu-item>
+          <!-- <el-menu-item index="/person/employee">员工管理</el-menu-item> -->
         </el-submenu>
         
         <el-menu-item index="/order/order">
@@ -75,6 +75,7 @@ export default {
     return {
       isCollapse: false,
       activeIndex: this.$route.path
+      
     };
   },
   computed: {
