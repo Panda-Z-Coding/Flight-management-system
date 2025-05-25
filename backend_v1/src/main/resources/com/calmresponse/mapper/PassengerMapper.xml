@@ -3,8 +3,8 @@
 <mapper namespace="com.calmresponse.mapper.PassengerMapper">
     <insert id="insert">
         insert into passenger
-        (name, id_card, status, phone_number,create_time, update_time, is_delete,username)
-        values (#{name},#{idCard},#{status},#{phoneNumber},#{createTime},#{updateTime},#{isDelete},#{username})
+        (name, id_card, phone_number,create_time, update_time, is_delete,username)
+        values (#{name},#{idCard},#{phoneNumber},#{createTime},#{updateTime},#{isDelete},#{username})
     </insert>
     <update id="update">
         UPDATE passenger
