@@ -133,6 +133,7 @@ export default {
                 this.$message.success("用户登录成功")
                 // 保存用户信息
                 sessionStorage.setItem('userInfo', JSON.stringify(userData))
+                sessionStorage.setItem('user', JSON.stringify(userData))
                 // 使用用户ID作为token
                 sessionStorage.setItem('token', userData.id)
                 sessionStorage.setItem('role', '0') // 设置为普通用户角色
