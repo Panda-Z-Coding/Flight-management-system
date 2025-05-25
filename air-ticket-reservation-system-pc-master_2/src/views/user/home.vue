@@ -5,7 +5,8 @@
       <el-col :span="24">
         <el-card class="welcome-card">
           <div class="welcome-content">
-            <h2>欢迎使用智能航空订票系统</h2>
+            <h2>集成AI助手的航班预订系统</h2>
+            <p>欢迎使用🫡</p>
             <p>快捷预订机票，轻松管理行程，智能伴你随行</p>
           </div>
         </el-card>
