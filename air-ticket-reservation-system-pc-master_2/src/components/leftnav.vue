@@ -18,7 +18,7 @@
         
         <el-submenu index="1">
           <template slot="title">
-            <i class="el-icon-plane"></i>
+            <i class="el-icon-s-promotion"></i>
             <span>航班管理</span>
           </template>
           <el-menu-item index="/fly/flight">航班信息</el-menu-item>
@@ -55,7 +55,7 @@
         </el-menu-item>
         
         <el-menu-item index="/user/orders">
-          <i class="el-icon-tickets"></i>
+          <i class="el-icon-s-order"></i>
           <span slot="title">我的订单</span>
         </el-menu-item>
         

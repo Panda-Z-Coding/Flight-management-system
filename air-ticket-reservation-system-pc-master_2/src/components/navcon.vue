@@ -7,7 +7,7 @@
     <div class="right">
       <el-dropdown trigger="click" @command="handleCommand">
         <span class="el-dropdown-link">
-          <i class="el-icon-user"></i> 个人中心<i class="el-icon-arrow-down el-icon--right"></i>
+          <i class="el-icon-s-custom"></i> 个人中心<i class="el-icon-arrow-down el-icon--right"></i>
         </span>
         <el-dropdown-menu slot="dropdown">
           <el-dropdown-item command="balance" v-if="!isAdmin">查看余额</el-dropdown-item>
@@ -66,6 +66,9 @@ export default {
         // 清除登录信息
         sessionStorage.removeItem('token');
         sessionStorage.removeItem('role');
+        sessionStorage.removeItem('user');
+        sessionStorage.removeItem('userInfo');
+        sessionStorage.removeItem('username');
         
         // 跳转到登录页
         this.$router.push('/login');
