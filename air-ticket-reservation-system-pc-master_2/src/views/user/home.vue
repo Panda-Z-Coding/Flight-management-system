@@ -142,20 +142,22 @@ export default {
   methods: {
     // 获取用户信息
     getUserInfo() {
-      const userDataJSON = sessionStorage.getItem("user");
-      if (userDataJSON) {
-        this.userInfo = JSON.parse(userDataJSON);
-      } else {
-        this.$axios.get('/user/info').then(res => {
-          if (res.data.code === 1) { // 修改这里，将200改为1，与后端返回的code值匹配
-            this.userInfo = res.data.data;
-            // 缓存用户信息
-            sessionStorage.setItem("user", JSON.stringify(this.userInfo));
-          }
-        }).catch(err => {
-          console.error('获取用户信息失败', err);
-        });
-      }
+      // 始终从服务器获取最新的用户信息
+      this.$axios.get('/user/info').then(res => {
+        if (res.data.code === 1) {
+          this.userInfo = res.data.data;
+          // 更新缓存的用户信息
+          sessionStorage.setItem("user", JSON.stringify(this.userInfo));
+          sessionStorage.setItem("userInfo", JSON.stringify(this.userInfo));
+        }
+      }).catch(err => {
+        // 如果API请求失败，尝试从本地存储获取
+        const userDataJSON = sessionStorage.getItem("user");
+        if (userDataJSON) {
+          this.userInfo = JSON.parse(userDataJSON);
+        }
+        console.error('获取用户信息失败', err);
+      });
     },
     // 获取公告信息
     getAnnouncements() {
