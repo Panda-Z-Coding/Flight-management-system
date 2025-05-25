@@ -1,6 +1,7 @@
 <template>
   <div class="flights-container">
     <div class="search-container">
+      <h2>航班查询</h2>
       <el-form :inline="true" :model="searchForm" class="search-form">
         <el-form-item label="出发城市">
           <el-input v-model="searchForm.departureCity" placeholder="请输入出发城市"></el-input>

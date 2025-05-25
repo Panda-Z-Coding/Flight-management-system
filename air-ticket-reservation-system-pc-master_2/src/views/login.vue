@@ -2,7 +2,7 @@
   <div class="login-wrap">
     <el-card class="loginCord" v-show="!userLoginShow">
       <div class="loginTitle">登录</div>
-      <el-form :model="loginForm" ref="loginForm" :rules="loginRules">
+      <el-form :model="loginForm" ref="loginForm" :rules="loginRules" @keydown.enter.native="handleEnter('loginForm')">
         <el-form-item prop="username">
           <el-input v-model="loginForm.username" placeholder="请输入用户名"></el-input>
         </el-form-item>
@@ -21,7 +21,7 @@
 
     <el-card class="loginCord" v-show="userLoginShow">
       <div class="loginTitle">用户登录</div>
-      <el-form :model="userLoginForm" ref="userLoginForm" :rules="userLoginRules">
+      <el-form :model="userLoginForm" ref="userLoginForm" :rules="userLoginRules" @keydown.enter.native="handleEnter('userLoginForm')">
         <el-form-item prop="username">
           <el-input v-model="userLoginForm.username" placeholder="请输入用户名"></el-input>
         </el-form-item>
@@ -73,6 +73,13 @@ export default {
   },
   /* 定义事件函数 */
   methods:{
+    handleEnter(formName) {
+      if (this.userLoginShow) {
+        this.loginUser(formName); // 触发用户登录
+      } else {
+        this.login(formName); // 触发普通登录
+      }
+    },
     userLogin(){
       this.userLoginShow = true
     },

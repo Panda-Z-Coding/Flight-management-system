@@ -25,13 +25,10 @@
           </el-option>
         </el-select>
         <el-form-item label="">
-          <el-input size="small" v-model="formInline.flightNumber" placeholder="输入航班号"></el-input>
-        </el-form-item>
-        <el-form-item label="">
           <el-date-picker
             v-model="formInline.departureTime"
-            type="date"
-            value-format="yyyy-MM-dd"
+            type="datetime"
+            value-format="yyyy-MM-dd HH:mm:ss"
             :picker-options="departureDateOptions"
             placeholder="选择日期">
           </el-date-picker>
@@ -40,12 +37,16 @@
       <el-form-item>
         <el-button size="small" type="primary" icon="el-icon-search" @click="search">搜索</el-button>
       </el-form-item>
+      <el-row>
+        <el-col :span="24">
       <el-form-item>
         <el-button size="small" type="primary" icon="el-icon-circle-plus" v-show="this.userKind !== '-2'" @click="addFlight() ">添加航班</el-button>
       </el-form-item>
       <el-form-item>
         <el-button size="small" type="primary" icon="el-icon-circle-plus" @click="exportData()">导出数据</el-button>
       </el-form-item>
+    </el-col>
+  </el-row>
     </el-form>
 
     <!-- 表格操作提示 -->
