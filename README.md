@@ -4,4 +4,5 @@
 - 原始项目地址 https://github.com/kingwzun/air-ticket-reservation-system
 
 - 项目部分展示
-![Uploading 总体展示.jpg…]()
+
+![总体展示](https://github.com/user-attachments/assets/ded09650-db39-4463-a568-77361f6b14ab)
